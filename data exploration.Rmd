@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo=FALSE, message=FALSE,warning=FALSE)
 library(tidyverse)
 library(dplyr)
 library(patchwork)
+library(corrplot)
+
 ```
 
 ```{r}
@@ -227,3 +229,74 @@ writing_log+writing_sqr+writing_inverse
 
 ```
 
+# Pairwise relationships
+
+```{r}
+df|>mutate(
+  gender=case_match(
+    gender,
+    "female"~0,
+    "male"~1
+  ),
+  parent_educ=case_match(
+    parent_educ,
+    "master's degree"~0,
+    "associate's degree"~1,
+    "bachelor's degree"~2,
+    "high school"~3,
+    "some college"~4,
+    "some high school"~5
+  ),
+  ethnic_group=case_match(
+    ethnic_group,
+    "group A"~0,
+    "group B"~1,
+    "group C"~2,
+    "group D"~3,
+    "group E"~4,
+  ),
+  lunch_type=case_match(
+    lunch_type,
+    "free/reduced"~0,
+    "standard"~1
+  ),
+  test_prep=case_match(
+    test_prep,
+    "completed"~0,
+    "none"~1
+  ),
+  parent_marital_status=case_match(
+    parent_marital_status,
+    "divorced"~0,
+    "married"~1,
+    "single"~2,
+    "widowed"~3
+  ),
+  practice_sport=case_match(
+    practice_sport,
+    "never"~0,
+    "regularly"~1,
+    "sometimes"~2
+  ),
+   is_first_child=case_match(
+    is_first_child,
+    "no"~0,
+    "yes"~1
+   ),
+  transport_means=case_match(
+    transport_means,
+    "private"~0,
+    "school_bus"~1
+   ),
+  wkly_study_hours=case_match(
+    wkly_study_hours,
+    "5-10"~0,
+    "< 5"~1,
+    "> 10"~2
+   )
+)|>
+  cor()|>
+  corrplot(method='color',addCoef.col="grey", order = "AOE",number.cex=0.5)
+```
+
+By plotting our the pairwise correlation between variables, there is apparent linearity among the three scores. Other correlation coefficients are relatively small, indicating weak linear relationship between the variables. 
