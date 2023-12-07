@@ -1,0 +1,252 @@
+---
+title: "ncl - variable selection"
+output: pdf_document
+date: "2023-12-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+library(corrplot)
+library(leaps)
+library(glmnet)
+library(olsrr)
+library(MASS)
+library(caret)
+```
+
+## Cleaned datasets
+```{r}
+step_df = read_csv("data/Project_1_data.csv") |>
+  drop_na() |> janitor::clean_names() |>
+  mutate(
+    wkly_study_hours = ifelse(
+      wkly_study_hours == "10-May", "5-10", wkly_study_hours)
+  )|>
+  mutate(
+    gender = as.numeric(factor(gender)),
+    ethnic_group = as.numeric(factor(ethnic_group)),
+    parent_educ = as.numeric(factor(
+      parent_educ,levels= c("some high school", "high school", 
+                            "associate's degree", "some college", 
+                            "bachelor's degree", "master's degree"))),
+    lunch_type = as.numeric(factor(lunch_type)), 
+    test_prep = as.numeric(factor(test_prep)),
+    parent_marital_status = as.numeric(factor(parent_marital_status)), 
+    practice_sport = as.numeric(
+      factor(practice_sport, levels = c("never", "sometimes", "regularly"))), 
+    is_first_child = as.numeric(factor(is_first_child)),
+    transport_means = as.numeric(as.factor(transport_means)),
+     wkly_study_hours = as.numeric(factor(wkly_study_hours,
+                              levels = c("< 5", "5-10", "> 10")))
+  )
+
+math_df = dplyr::select(step_df, -c(reading_score, writing_score)) 
+
+reading_df = dplyr::select(step_df, -c(math_score, writing_score))
+
+writing_df = dplyr::select(step_df, -c(reading_score, math_score))
+```
+
+## Step-wise + criteria-based: stepAIC()
+
+Math Score
+```{r}
+math_mlr <- lm(math_score ~., data = math_df)
+
+mathstep.model <- stepAIC(math_mlr, direction = "both", 
+                      trace = FALSE)
+summary(mathstep.model)
+```
+The step-wise-AIC model predicting math score contains gender, ethnic group, 
+parent education level, lunch type, test prep, number of siblings, and weekly 
+study hours.The p-values for gender, ethnic group, parent education level, 
+lunch type, test prep, and weekly study hours were all < 0.05 and are therefore 
+significant. Number of siblings was the only variable whose p-value > 0.05. 
+The overall p-value of the model < 0.05 as well.
+
+
+Reading Score
+```{r}
+reading_mlr <- lm(reading_score ~., data = reading_df)
+
+readstep.model <- stepAIC(reading_mlr, direction = "both", 
+                      trace = FALSE)
+summary(readstep.model)
+```
+The step-wise-AIC model predicting reading score contains gender, ethnic group, 
+parent education level, lunch type, and test prep.The p-values for all of these 
+variables were < 0.05 and are therefore significant. The overall p-value of the 
+model < 0.05 as well. 
+  
+  
+Writing Score
+```{r}
+writing_mlr <- lm(writing_score ~., data = writing_df)
+
+writestep.model <- stepAIC(writing_mlr, direction = "both", 
+                      trace = FALSE)
+summary(writestep.model)
+```
+The step-wise-AIC model predicting writing score contains gender, ethnic group, 
+parent education level, lunch type, test prep, and weekly study hours.The 
+p-values for gender, ethnic group, parent education level, lunch type, and test 
+prep were all < 0.05 and are therefore significant. Weekly study hours was the 
+only variable whose p-value > 0.05.The overall p-value of the model < 0.05 as 
+well. 
+
+The writing score's step-AIC model seemed to have lowest residual standard error 
+out of all three scores' models. It is also interesting to note that the 
+adjusted R^2 values for all three models only differed slightly from their R^2 
+counterparts by about -0.01 to -0.02.
+
+## Criteria-based approach - Adjusted R^2, Cp, and BIC
+
+(Note: BIC has a larger penalty, leading to less predictors present within 
+the model.)
+
+Math Score
+```{r}
+# perform best subset selection
+best_subset <- regsubsets(math_score ~ ., math_df, nvmax = 11)
+results <- summary(best_subset)
+
+# extract and plot results
+tibble(predictors = 1:11,
+       adj_R2 = results$adjr2,
+       Cp = results$cp,
+       BIC = results$bic) |>
+  gather(statistic, value, -predictors) |>
+  ggplot(aes(predictors, value, color = statistic)) +
+  geom_line(show.legend = F) +
+  geom_point(show.legend = F) +
+  facet_wrap(~ statistic, scales = "free")
+```
+To predict math score, the adjusted R^2 statistic shows that a 7-variable is 
+model is optimal, while the BIC statistic points to a 5-variable model. 
+The $C_{p}$ suggests a 7-variable model as well. 
+
+Reading Score
+```{r}
+best_subset <- regsubsets(reading_score ~ ., reading_df, nvmax = 11)
+results <- summary(best_subset)
+
+tibble(predictors = 1:11,
+       adj_R2 = results$adjr2,
+       Cp = results$cp,
+       BIC = results$bic) %>%
+  gather(statistic, value, -predictors) %>%
+  ggplot(aes(predictors, value, color = statistic)) +
+  geom_line(show.legend = F) +
+  geom_point(show.legend = F) +
+  facet_wrap(~ statistic, scales = "free")
+```
+To predict reading score, the adjusted R^2 statistic shows that 6 or 7-variable 
+is model is optimal, while the BIC statistic points to a 5-variable model. 
+The $C_{p}$ seems to suggest a 6 or 7-variable model as well. 
+
+Writing Score
+```{r}
+best_subset <- regsubsets(writing_score ~ ., writing_df, nvmax = 11)
+results <- summary(best_subset)
+
+tibble(predictors = 1:11,
+       adj_R2 = results$adjr2,
+       Cp = results$cp,
+       BIC = results$bic) %>%
+  gather(statistic, value, -predictors) %>%
+  ggplot(aes(predictors, value, color = statistic)) +
+  geom_line(show.legend = F) +
+  geom_point(show.legend = F) +
+  facet_wrap(~ statistic, scales = "free")
+```
+To predict writing score, the adjusted R^2 statistic shows that a 
+7 or 8-variable is model is optimal, while the BIC statistic points to 
+a 5-variable model. The $C_{p}$ suggests a 7-variable model as well. 
+
+
+## LASSO approach - 
+
+When lambda = 5, the model will tend to have fewer predictors due to the 
+larger penalty. The number of predictors present in the model will increase as 
+lambda decreases; lambda = 1 tends to have about half of the total predictors 
+(~ 6-7) and lambda = 0.1 typically contains all of the available predictors.
+
+Math score (3):
+
+```{r}
+# fit a LASSO with lambda = 5
+fit_5 <- glmnet(as.matrix(dplyr::select(math_df, 1:11)), math_df$math_score, 
+                lambda = 5)
+coef(fit_5)
+
+# fit a LASSO with lambda = 1
+fit_1 <- glmnet(as.matrix(dplyr::select(math_df, 1:11)), math_df$math_score, 
+                lambda = 1)
+coef(fit_1)
+
+# fit a LASSO with lambda = 0.1
+fit_0.1 <- glmnet(as.matrix(dplyr::select(math_df, 1:11)), math_df$math_score, 
+                  lambda = 0.1)
+coef(fit_0.1)
+
+```
+The LASSO model fitted with $\lambda$ = 5 reduced all of the predictors' 
+coefficients to zero, except for lunch type which  had a coefficient of 2.45. 
+The model fitted with $\lambda$ = 1 selected for gender, ethnic group, parent 
+education level, lunch type, test prep, number of siblings, and weekly study 
+hours. The $\lambda$ = 0.1 model maintains coefficient values similar in range 
+to those of $\lambda$ = 1 model and the corresponding step-wise-AIC model above. 
+
+
+Reading score (3):
+```{r}
+# fit a LASSO with lambda = 5
+fit_5 <- glmnet(as.matrix(dplyr::select(reading_df, 1:11)), 
+                reading_df$reading_score, lambda = 5)
+coef(fit_5)
+
+# fit a LASSO with lambda = 1
+fit_1 <- glmnet(as.matrix(dplyr::select(reading_df, 1:11)), 
+                reading_df$reading_score, lambda = 1)
+coef(fit_1)
+
+# fit a LASSO with lambda = 0.1
+fit_0.1 <- glmnet(as.matrix(dplyr::select(reading_df, 1:11)), 
+                  reading_df$reading_score, lambda = 0.1)
+coef(fit_0.1)
+
+```
+The LASSO model fitted with $\lambda$ = 5 reduced all of the predictors' 
+coefficients to zero. The model fitted with $\lambda$ = 1 selected for gender, 
+ethnic group, parent education level, lunch type, and test prep. 
+The $\lambda$ = 0.1 model maintains coefficient values similar in range to 
+those of $\lambda$ = 1 model and the corresponding step-wise-AIC model above. 
+
+
+Writing score (3):
+```{r}
+# fit a LASSO with lambda = 5
+fit_5 <- glmnet(as.matrix(writing_df[1:11]), 
+                writing_df$writing_score, lambda = 5)
+coef(fit_5)
+
+# fit a LASSO with lambda = 1
+fit_1 <- glmnet(as.matrix(dplyr::select(writing_df, 1:11)), 
+                writing_df$writing_score, lambda = 1)
+coef(fit_1)
+
+# fit a LASSO with lambda = 0.1
+fit_0.1 <- glmnet(as.matrix(dplyr::select(writing_df, 1:11)), 
+                  writing_df$writing_score, lambda = 0.1)
+coef(fit_0.1)
+
+```
+
+The LASSO model fitted with $\lambda$ = 5 reduced all of the predictors' 
+coefficients to zero. The model fitted with $\lambda$ = 1 selected for gender, 
+ethnic group, parent education level, lunch type, and test prep. 
+The $\lambda$ = 0.1 model maintains coefficient values similar in range to 
+those of $\lambda$ = 1 model and the corresponding step-wise-AIC model above. 

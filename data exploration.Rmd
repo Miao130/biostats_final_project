@@ -13,7 +13,6 @@ library(tidyverse)
 library(dplyr)
 library(patchwork)
 library(corrplot)
-
 ```
 
 ```{r}
@@ -73,7 +72,6 @@ sum_stats_numeric=function(x) {
 results_num=df|>
   select(nr_siblings,math_score,reading_score,writing_score)|>
   sum_stats_numeric()
-
 
 
 ```
