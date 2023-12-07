@@ -79,7 +79,7 @@ results_num=df|>
 ```
 
 ## Categorical Variables
-```{r}
+```{r,echo=FALSE}
 do.call(rbind, results_cat)|>
   rownames_to_column(var="variable")|>
   separate(variable,into=c("variable","category"),sep="\\.")|>
@@ -87,7 +87,7 @@ do.call(rbind, results_cat)|>
 ```
 
 ## Numeric Variables
-```{r}
+```{r,echo=FALSE}
 do.call(rbind, results_num)|>
   rownames_to_column(var = "variable")|>
   knitr::kable()
@@ -98,7 +98,7 @@ do.call(rbind, results_num)|>
 The outcome of this study includes the following variables: maths scores, reading scores, and writing scores. QQplots of the outcome variables are created to explore the distribution of each score. QQplot compares the quantiles of the data against the quantiles of  a normal distribution. According the plots, majority of the data points of all three scores follow the straight qqline, which indicates they follow the normal distribution. However, there are some deviations from the line on the two ends of the distribution, which indicates the distributions might have heavier tails than normal distribution. Or, there might be skewness or outliers in the dataset. To further explore the distribution of outcomes, histograms and boxplots for the scores were incorporated. As suggested by the histograms and boxplots, all three scores are left-skewed with outliers on the left side of the distribution. 
 
 
-```{r}
+```{r,echo=FALSE}
 
 # qqplots of 3 scores
 qq_math=df|>
@@ -231,7 +231,7 @@ writing_log+writing_sqr+writing_inverse
 
 # Pairwise relationships
 
-```{r}
+```{r，echo=FALSE}
 df|>mutate(
   gender=case_match(
     gender,
