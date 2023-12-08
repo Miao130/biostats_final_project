@@ -140,8 +140,7 @@ do.call(rbind, results_num)|>
 
 # Exploration of outcome variables
 
-The outcome of this study includes the following variables: maths scores, reading scores, and writing scores. QQplots of the outcome variables are created to explore the distribution of each score. QQplot compares the quantiles of the data against the quantiles of  a normal distribution. According the plots, majority of the data points of all three scores follow the straight qqline, which indicates they follow the normal distribution. However, there are some deviations from the line on the two ends of the distribution, which indicates the distributions might have heavier tails than normal distribution. Or, there might be skewness or outliers in the dataset. To further explore the distribution of outcomes, histograms and boxplots for the scores were incorporated. As suggested by the histograms and boxplots, all three scores are left-skewed with outliers on the left side of the distribution. 
-
+The outcome of this study includes the following variables: maths scores, reading scores, and writing scores. QQplots of the outcome variables are created to explore the distribution of each score. QQplot compares the quantiles of the data against the quantiles of  a normal distribution. According the plots, majority of the data points of all three scores follow the straight qqline, which indicates they follow the normal distribution. However, there are some deviations from the line on the two ends of the distribution, which indicates the distributions might have heavier tails than normal distribution. To further explore the distribution of outcomes, histograms and boxplots for the scores were incorporated. They are slightly left-tailed but mainly normally distributed. Thus, transformations are tested in the later section to further investigate the variables. 
 
 ```{r,echo=FALSE}
 
@@ -245,9 +244,9 @@ barplot(table(df_transformed$transport_means), main='Transport Means')
 barplot(table(df_transformed$wkly_study_hours), main='Weekly Study Hours')
 
 ```
-From the distribution bar graphs. It looks like no transformation is needed for any predictor variables.
+From the distribution bar graphs, it was decided that no transformation is needed for any predictor variables. Admittedly, the distributions might not be good references for transformation because the variables are all categorical. 
 
-# Potential transformations 
+# Potential transformations for outcome variables 
 
 ```{r}
 # Log, Sqrt, and Inverse transformation of outcomes
@@ -276,14 +275,14 @@ hist(df_eda$sqWrite, main="sq(Writing Score)",xlab="Score")
 hist(df_eda$inWrite, main="in(Writing Score)",xlab="Score")
 
 ```
-Potential transformations that may help further prepare the variables for later analysis were tested. With the expectation to normalize distribution and minimize skewness and impact of outliers, three types of transformations were tested: 1) Natural logarithm 2) Square Root 3) Inverse. The resulting plots are plotted in histograms shown below. There is no apparent improvement on the distribution of the outcome through the three transformations mentioned. Thus, orignial outcome data were chosen to be used in following statistical modeling steps. 
+Since the distribution of the three scores showed slightly left-tailed, three types of transformations were tested: 1) Natural logarithm 2) Square Root 3) Inverse. The resulting plots are plotted in histograms shown above. There is no apparent improvement on the distribution of the outcome through the three transformations. Thus, the orignial outcome data were chosen to be used in following statistical modeling steps. 
 
 # Pairwise relationships
 
 ```{r}
 df_num|>
   cor()|>
-  corrplot(method='color',addCoef.col="grey", order = "AOE",number.cex=0.5)
+  corrplot(type = "upper", diag = FALSE)
 ```
 
 By plotting our the pairwise correlation between variables, there is apparent linearity among the three scores. Other correlation coefficients are relatively small, indicating weak linear relationship between the variables. 
@@ -454,8 +453,7 @@ out of all three scores' models. It is also interesting to note that the
 adjusted R^2 values for all three models only differed slightly from their R^2 
 counterparts by about -0.01 to -0.02.
 
-## Criteria-based approach - Adjusted R^2, Cp, and BIC
-
+## Criteria-based approach - Adjusted R^2, Cp, BIC
 (Note: BIC has a larger penalty, leading to less predictors present within 
 the model.)
 
@@ -475,10 +473,12 @@ tibble(predictors = 1:11,
   geom_line(show.legend = F) +
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
+
+results$which[7,]|>print()
 ```
-To predict math score, the adjusted R^2 statistic shows that a 7-variable is 
-model is optimal, while the BIC statistic points to a 5-variable model. 
-The $C_{p}$ suggests a 7-variable model as well. 
+To predict math score, the adjusted R^2 statistic and Cp shows that a 7-variable is 
+model is optimal. The BIC shows 
+The predictors selected are: 
 
 Reading Score
 ```{r}
@@ -494,10 +494,11 @@ tibble(predictors = 1:11,
   geom_line(show.legend = F) +
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
+
+results$which[7,]|>print()
 ```
-To predict reading score, the adjusted R^2 statistic shows that 6 or 7-variable 
-is model is optimal, while the BIC statistic points to a 5-variable model. 
-The $C_{p}$ seems to suggest a 6 or 7-variable model as well. 
+To predict reading score, the adjusted R^2 statistic and $C_{p}$ shows that 
+The predictors selected are: 
 
 Writing Score
 ```{r}
@@ -513,10 +514,12 @@ tibble(predictors = 1:11,
   geom_line(show.legend = F) +
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
+
+results$which[7,]|>print()
 ```
 To predict writing score, the adjusted R^2 statistic shows that a 
-7 or 8-variable is model is optimal, while the BIC statistic points to 
-a 5-variable model. The $C_{p}$ suggests a 7-variable model as well. 
+7 or 8-variable is model is optimal. The $C_{p}$ suggests a 7-variable model as well.\
+The predictors selected are: 
 
 
 ## LASSO approach - 
@@ -524,7 +527,7 @@ a 5-variable model. The $C_{p}$ suggests a 7-variable model as well.
 Math score:
 ```{r}
 # Find the best lambda
-math_lasso=df_transformed|>
+math_lasso=df_num|>
   dplyr::select(-reading_score,-writing_score)|>
   dplyr::select(math_score,everything())
 
@@ -545,7 +548,7 @@ coef(math_model_lasso)
 Reading score:
 
 ```{r}
-read_lasso=df_transformed|>
+read_lasso=df_num|>
   dplyr::select(-math_score,-writing_score)|>
   dplyr::select(reading_score,everything())
 
@@ -566,7 +569,7 @@ coef(read_model_lasso)
 Writing score:
 
 ```{r}
-write_lasso=df_transformed|>
+write_lasso=df_num|>
   dplyr::select(-reading_score,-math_score)|>
   dplyr::select(writing_score,everything())
 
