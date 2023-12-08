@@ -524,7 +524,7 @@ The predictors selected are:
 
 ## LASSO approach - 
 
-Math score:
+Maths score:
 ```{r}
 # Find the best lambda
 math_lasso=df_num|>
