@@ -21,6 +21,7 @@ library(caret)
 ```
 
 ```{r}
+# read datafile
 df = read_csv("data/Project_1_data.csv") |> 
   janitor::clean_names() |>
   mutate(
@@ -29,6 +30,25 @@ df = read_csv("data/Project_1_data.csv") |>
   )|>
   na.omit()
 
+# Transforming categorical variables to factors
+df_transformed <- df |> 
+  mutate(
+    gender = as.factor(gender),
+    ethnic_group = as.factor(ethnic_group),
+    parent_educ = factor(parent_educ,
+                         levels= c("some high school", "high school", "associate's degree", "some college", "bachelor's degree", "master's degree")),
+    lunch_type = as.factor(lunch_type),
+    test_prep = as.factor(test_prep),
+    parent_marital_status = as.factor(parent_marital_status),
+    practice_sport = factor(practice_sport,
+                            levels = c("never", "sometimes", "regularly")),
+    is_first_child = factor(is_first_child),
+    transport_means = as.factor(transport_means),
+    wkly_study_hours = factor(wkly_study_hours,
+                              levels = c("< 5", "5-10", "> 10"))
+  )
+
+# converting categorical variable to numeric variables
 df_num=df|>
   mutate(
     gender = as.numeric(factor(gender)),
@@ -53,6 +73,7 @@ df_num=df|>
 
 Two table with summary information on the descriptive statistics of all variables are listed below. The frequency and percentage of each categories in each categorical variable is listed out. For each numeric variable, the table includes values of mean, median, standard deviation, minimum, maximum, Q1 and Q3 values. 
 ```{r, include=FALSE}
+# categorical
 sum_stats_cat = function(data) {
   results = list()
   
@@ -76,6 +97,7 @@ for (i in seq_along(results_cat)) {
   print(results_cat[[i]])
 }
 
+# numeric
 sum_stats_numeric=function(x) {
   results=list()
   
@@ -116,7 +138,7 @@ do.call(rbind, results_num)|>
   knitr::kable()
 ```
 
-# Distribution of the outcomes
+# Exploration of outcome variables
 
 The outcome of this study includes the following variables: maths scores, reading scores, and writing scores. QQplots of the outcome variables are created to explore the distribution of each score. QQplot compares the quantiles of the data against the quantiles of  a normal distribution. According the plots, majority of the data points of all three scores follow the straight qqline, which indicates they follow the normal distribution. However, there are some deviations from the line on the two ends of the distribution, which indicates the distributions might have heavier tails than normal distribution. Or, there might be skewness or outliers in the dataset. To further explore the distribution of outcomes, histograms and boxplots for the scores were incorporated. As suggested by the histograms and boxplots, all three scores are left-skewed with outliers on the left side of the distribution. 
 
@@ -206,51 +228,55 @@ writing_box=df|>
 (maths_hist+maths_box)/(reading_hist+reading_box)/(writing_hist+writing_box)
 ```
 
-# Potential transformations 
-
-Potential transformations that may help further prepare the variables for later analysis were tested. With the expectation to normalize distribution and minimize skewness and impact of outliers, three types of transformations were tested: 1) Natural logarithm 2) Square Root 3) Inverse. The resulting plots are plotted in histograms shown below. There is no apparent improvement on the distribution of the outcome through the three transformations mentioned. Thus, orignial outcome data were chosen to be used in following statistical modeling steps. 
+# Exploration of predictor variables
 
 ```{r}
-#transform maths scores
-math_log=df|>
-  ggplot(aes(x=log(math_score)))+
-  geom_histogram()
-math_sqr=df|>
-  ggplot(aes(x=sqrt(math_score)))+
-  geom_histogram()
-math_inverse=df|>
-  ggplot(aes(x=1/(math_score)))+
-  geom_histogram()
-
-math_log+math_sqr+math_inverse
-
-#transform reading scores
-reading_log=df|>
-  ggplot(aes(x=log(reading_score)))+
-  geom_histogram()
-reading_sqr=df|>
-  ggplot(aes(x=sqrt(reading_score)))+
-  geom_histogram()
-reading_inverse=df|>
-  ggplot(aes(x=1/(reading_score)))+
-  geom_histogram()
-
-reading_log+reading_sqr+reading_inverse
-
-#transform writing scores 
-writing_log=df|>
-  ggplot(aes(x=log(writing_score)))+
-  geom_histogram()
-writing_sqr=df|>
-  ggplot(aes(x=sqrt(writing_score)))+
-  geom_histogram()
-writing_inverse=df|>
-  ggplot(aes(x=1/(writing_score)))+
-  geom_histogram()
-
-writing_log+writing_sqr+writing_inverse
+par(mfrow=c(2,3))
+barplot(table(df_transformed$gender), main='Gender')
+barplot(table(df_transformed$ethnic_group), main='Ethnic Group')
+barplot(table(df_transformed$lunch_type), main='Lunch Type')
+barplot(table(df_transformed$test_prep), main='Test Prep')
+barplot(table(df_transformed$parent_educ), main='Parent Education')
+barplot(table(df_transformed$parent_marital_status), main='Parent Marital Status')
+barplot(table(df_transformed$practice_sport), main='Practice Sports')
+barplot(table(df_transformed$is_first_child), main='First Child')
+barplot(table(df_transformed$nr_siblings), main='Siblings')
+barplot(table(df_transformed$transport_means), main='Transport Means')
+barplot(table(df_transformed$wkly_study_hours), main='Weekly Study Hours')
 
 ```
+From the distribution bar graphs. It looks like no transformation is needed for any predictor variables.
+
+# Potential transformations 
+
+```{r}
+# Log, Sqrt, and Inverse transformation of outcomes
+df_eda=df|>
+  dplyr::select(math_score,writing_score,reading_score)|>
+  mutate(
+    lgMath=log(math_score),
+    sqMath=sqrt(math_score),
+    inMath=1/(math_score),
+    lgRead=log(reading_score),
+    sqRead=sqrt(reading_score),
+    inRead=1/(reading_score),
+    lgWrite=log(writing_score),
+    sqWrite=sqrt(writing_score),
+    inWrite=1/(writing_score),
+  )
+par(mfrow=c(2,3))
+hist(df_eda$lgMath, main="Log(Maths Score)",xlab="Score")
+hist(df_eda$sqMath, main="sq(Maths Score)",xlab="Score")
+hist(df_eda$inMath, main="in(Maths Score)",xlab="Score")
+hist(df_eda$lgRead, main="Log(Reading Score)",xlab="Score")
+hist(df_eda$sqRead, main="sq(Reading Score)",xlab="Score")
+hist(df_eda$inRead, main="in(Reading Score)",xlab="Score")
+hist(df_eda$lgWrite, main="Log(Writing Score)",xlab="Score")
+hist(df_eda$sqWrite, main="sq(Writing Score)",xlab="Score")
+hist(df_eda$inWrite, main="in(Writing Score)",xlab="Score")
+
+```
+Potential transformations that may help further prepare the variables for later analysis were tested. With the expectation to normalize distribution and minimize skewness and impact of outliers, three types of transformations were tested: 1) Natural logarithm 2) Square Root 3) Inverse. The resulting plots are plotted in histograms shown below. There is no apparent improvement on the distribution of the outcome through the three transformations mentioned. Thus, orignial outcome data were chosen to be used in following statistical modeling steps. 
 
 # Pairwise relationships
 
@@ -264,33 +290,13 @@ By plotting our the pairwise correlation between variables, there is apparent li
 
 # MLR lm()
 
-```{r categorical variables to factors}
-# Transforming categorical variables to factors
-df_transformed <- df |> 
-  mutate(
-    gender = as.factor(gender),
-    ethnic_group = as.factor(ethnic_group),
-    parent_educ = factor(parent_educ,
-                         levels= c("some high school", "high school", "associate's degree", "some college", "bachelor's degree", "master's degree")),
-    lunch_type = as.factor(lunch_type),
-    test_prep = as.factor(test_prep),
-    parent_marital_status = as.factor(parent_marital_status),
-    practice_sport = factor(practice_sport,
-                            levels = c("never", "sometimes", "regularly")),
-    is_first_child = factor(is_first_child),
-    transport_means = as.factor(transport_means),
-    wkly_study_hours = factor(wkly_study_hours,
-                              levels = c("< 5", "5-10", "> 10"))
-  )
-
-```
-
 ```{r MLR models}
 # Build the MLR model for Math scores
 model_math <- lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
 model_read <- lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
 model_write <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
 ```
+
 
 ## MLR - Math
 ```{r math}
@@ -515,86 +521,66 @@ a 5-variable model. The $C_{p}$ suggests a 7-variable model as well.
 
 ## LASSO approach - 
 
-When lambda = 5, the model will tend to have fewer predictors due to the 
-larger penalty. The number of predictors present in the model will increase as 
-lambda decreases; lambda = 1 tends to have about half of the total predictors 
-(~ 6-7) and lambda = 0.1 typically contains all of the available predictors.
-
-Math score (3):
-
+Math score:
 ```{r}
-# fit a LASSO with lambda = 5
-fit_5 <- glmnet(as.matrix(dplyr::select(math_df, 1:11)), math_df$math_score, 
-                lambda = 5)
-coef(fit_5)
+# Find the best lambda
+math_lasso=df_transformed|>
+  dplyr::select(-reading_score,-writing_score)|>
+  dplyr::select(math_score,everything())
 
-# fit a LASSO with lambda = 1
-fit_1 <- glmnet(as.matrix(dplyr::select(math_df, 1:11)), math_df$math_score, 
-                lambda = 1)
-coef(fit_1)
+lambda_seq = 10^seq(-3, 0, by = .1)
+set.seed(1)
+cv_object = cv.glmnet(as.matrix(math_lasso[2:12]),math_lasso$math_score, lambda = lambda_seq, nfolds = 5)
 
-# fit a LASSO with lambda = 0.1
-fit_0.1 <- glmnet(as.matrix(dplyr::select(math_df, 1:11)), math_df$math_score, 
-                  lambda = 0.1)
-coef(fit_0.1)
+tibble(lambda = cv_object$lambda,
+       mean_cv_error = cv_object$cvm) |>
+  ggplot(aes(x = lambda, y = mean_cv_error)) +
+  geom_point()
 
-```
-The LASSO model fitted with $\lambda$ = 5 reduced all of the predictors' 
-coefficients to zero, except for lunch type which  had a coefficient of 2.45. 
-The model fitted with $\lambda$ = 1 selected for gender, ethnic group, parent 
-education level, lunch type, test prep, number of siblings, and weekly study 
-hours. The $\lambda$ = 0.1 model maintains coefficient values similar in range 
-to those of $\lambda$ = 1 model and the corresponding step-wise-AIC model above. 
-
-
-Reading score (3):
-```{r}
-# fit a LASSO with lambda = 5
-fit_5 <- glmnet(as.matrix(dplyr::select(reading_df, 1:11)), 
-                reading_df$reading_score, lambda = 5)
-coef(fit_5)
-
-# fit a LASSO with lambda = 1
-fit_1 <- glmnet(as.matrix(dplyr::select(reading_df, 1:11)), 
-                reading_df$reading_score, lambda = 1)
-coef(fit_1)
-
-# fit a LASSO with lambda = 0.1
-fit_0.1 <- glmnet(as.matrix(dplyr::select(reading_df, 1:11)), 
-                  reading_df$reading_score, lambda = 0.1)
-coef(fit_0.1)
-
-```
-The LASSO model fitted with $\lambda$ = 5 reduced all of the predictors' 
-coefficients to zero. The model fitted with $\lambda$ = 1 selected for gender, 
-ethnic group, parent education level, lunch type, and test prep. 
-The $\lambda$ = 0.1 model maintains coefficient values similar in range to 
-those of $\lambda$ = 1 model and the corresponding step-wise-AIC model above. 
-
-
-Writing score (3):
-```{r}
-# fit a LASSO with lambda = 5
-fit_5 <- glmnet(as.matrix(writing_df[1:11]), 
-                writing_df$writing_score, lambda = 5)
-coef(fit_5)
-
-# fit a LASSO with lambda = 1
-fit_1 <- glmnet(as.matrix(dplyr::select(writing_df, 1:11)), 
-                writing_df$writing_score, lambda = 1)
-coef(fit_1)
-
-# fit a LASSO with lambda = 0.1
-fit_0.1 <- glmnet(as.matrix(dplyr::select(writing_df, 1:11)), 
-                  writing_df$writing_score, lambda = 0.1)
-coef(fit_0.1)
-
+# Use the best lambda to model
+math_model_lasso=glmnet(as.matrix(math_lasso[2:12]),math_lasso$math_score,lambda=cv_object$lambda.min)
+coef(math_model_lasso)
 ```
 
-The LASSO model fitted with $\lambda$ = 5 reduced all of the predictors' 
-coefficients to zero. The model fitted with $\lambda$ = 1 selected for gender, 
-ethnic group, parent education level, lunch type, and test prep. 
-The $\lambda$ = 0.1 model maintains coefficient values similar in range to 
-those of $\lambda$ = 1 model and the corresponding step-wise-AIC model above. 
+Reading score:
 
+```{r}
+read_lasso=df_transformed|>
+  dplyr::select(-math_score,-writing_score)|>
+  dplyr::select(reading_score,everything())
+
+lambda_seq = 10^seq(-3, 0, by = .1)
+set.seed(2)
+cv_object = cv.glmnet(as.matrix(read_lasso[2:12]),read_lasso$reading_score, lambda = lambda_seq, nfolds =5)
+
+tibble(lambda = cv_object$lambda,
+       mean_cv_error = cv_object$cvm) |>
+  ggplot(aes(x = lambda, y = mean_cv_error)) +
+  geom_point()
+
+# Use the best lambda to model
+read_model_lasso=glmnet(as.matrix(read_lasso[2:12]),read_lasso$reading_score,lambda=cv_object$lambda.min)
+coef(read_model_lasso)
+```
+
+Writing score:
+
+```{r}
+write_lasso=df_transformed|>
+  dplyr::select(-reading_score,-math_score)|>
+  dplyr::select(writing_score,everything())
+
+lambda_seq = 10^seq(-3, 0, by = .1)
+set.seed(2)
+cv_object = cv.glmnet(as.matrix(write_lasso[2:12]),write_lasso$writing_score, lambda = lambda_seq, nfolds =5)
+
+tibble(lambda = cv_object$lambda,
+       mean_cv_error = cv_object$cvm) |>
+  ggplot(aes(x = lambda, y = mean_cv_error)) +
+  geom_point()
+
+# Use the best lambda to model
+write_model_lasso=glmnet(as.matrix(write_lasso[2:12]),write_lasso$writing_score,lambda=cv_object$lambda.min)
+coef(write_model_lasso)
+```
 
