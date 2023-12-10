@@ -392,7 +392,7 @@ The model we obtained is Math Score ~ Lunch Type + Ethnic Group + Test Prep +
 Gender + Parent Education + Weekly Study Hours.
 
 When using the single-function method, the model obtained with the lowest AIC
-was Math Score ~ LUnch Type + Ethnic Group + Test Prep + Gender + Parent
+was Math Score ~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent
 Education + Weekly Study Hours + Number of Siblings.
 
 

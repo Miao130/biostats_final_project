@@ -1159,57 +1159,6 @@ forwards and backwards elimination, extra variables were included despite their
 individual p-values > 0.05; therefore the manually-selected models should be 
 used for comparison and validation.
 
-## Step-wise + criteria-based: stepAIC()
-
-Math Score
-```{r}
-math_mlr <- lm(math_score ~., data = math_df)
-
-mathstep.model <- stepAIC(math_mlr, direction = "both", 
-                      trace = FALSE)
-summary(mathstep.model)
-```
-The step-wise-AIC model predicting math score contains gender, ethnic group, 
-parent education level, lunch type, test prep, number of siblings, and weekly 
-study hours.The p-values for gender, ethnic group, parent education level, 
-lunch type, test prep, and weekly study hours were all < 0.05 and are therefore 
-significant. Number of siblings was the only variable whose p-value > 0.05. 
-The overall p-value of the model < 0.05 as well.
-
-
-Reading Score
-```{r}
-reading_mlr <- lm(reading_score ~., data = reading_df)
-
-readstep.model <- stepAIC(reading_mlr, direction = "both", 
-                      trace = FALSE)
-summary(readstep.model)
-```
-The step-wise-AIC model predicting reading score contains gender, ethnic group, 
-parent education level, lunch type, and test prep.The p-values for all of these 
-variables were < 0.05 and are therefore significant. The overall p-value of the 
-model < 0.05 as well. 
-  
-  
-Writing Score
-```{r}
-writing_mlr <- lm(writing_score ~., data = writing_df)
-
-writestep.model <- stepAIC(writing_mlr, direction = "both", 
-                      trace = FALSE)
-summary(writestep.model)
-```
-The step-wise-AIC model predicting writing score contains gender, ethnic group, 
-parent education level, lunch type, test prep, and weekly study hours.The 
-p-values for gender, ethnic group, parent education level, lunch type, and test 
-prep were all < 0.05 and are therefore significant. Weekly study hours was the 
-only variable whose p-value > 0.05.The overall p-value of the model < 0.05 as 
-well. 
-
-The writing score's step-AIC model seemed to have lowest residual standard error 
-out of all three scores' models. It is also interesting to note that the 
-adjusted R^2 values for all three models only differed slightly from their R^2 
-counterparts by about -0.01 to -0.02.
 
 ## Criteria-based approach - Adjusted R^2, Cp, BIC
 (Note: BIC has a larger penalty, leading to less predictors present within 
@@ -1234,9 +1183,8 @@ tibble(predictors = 1:11,
 
 results$which[7,]|>print()
 ```
-To predict math score, the adjusted R^2 statistic and Cp shows that a 7-variable is 
-model is optimal. The BIC shows 
-The predictors selected are: 
+To predict math score, the adjusted R^2 statistic, Cp, and BIC plots in combination show that a 7-variable model is optimal. 
+The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, nr_siblings, and wkly study_hours. 
 
 Reading Score
 ```{r}
@@ -1253,10 +1201,10 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-results$which[7,]|>print()
+results$which[5,]|>print()
 ```
-To predict reading score, the adjusted R^2 statistic and $C_{p}$ shows that 
-The predictors selected are: 
+To predict reading score, the adjusted R^2 statistic and Cp and BIC plots shows that a 5-variable model is optimal. 
+The predictors selected are: gender, ethnic_grouop, parent_educ, lunch_type, test_prep, practice_sport, and wkly_study_hours. 
 
 Writing Score
 ```{r}
@@ -1273,19 +1221,19 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-results$which[7,]|>print()
+results$which[5,]|>print()
 ```
-To predict writing score, the adjusted R^2 statistic shows that a 
-7 or 8-variable is model is optimal. The $C_{p}$ suggests a 7-variable model as well.\
-The predictors selected are: 
+To predict writing score, the adjusted R^2, Cp, and BIC statistics show that a 5-variable model is optimal. \
+The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep
 
+Limitation: noting that the plots maximum and minimum are not that obvious.
 
 ## LASSO approach - 
 
 Maths score:
 ```{r}
 # Find the best lambda
-math_lasso=df_num|>
+math_lasso=step_df|>
   dplyr::select(-reading_score,-writing_score)|>
   dplyr::select(math_score,everything())
 
@@ -1306,7 +1254,7 @@ coef(math_model_lasso)
 Reading score:
 
 ```{r}
-read_lasso=df_num|>
+read_lasso=step_df|>
   dplyr::select(-math_score,-writing_score)|>
   dplyr::select(reading_score,everything())
 
@@ -1344,4 +1292,10 @@ tibble(lambda = cv_object$lambda,
 write_model_lasso=glmnet(as.matrix(write_lasso[2:12]),write_lasso$writing_score,lambda=cv_object$lambda.min)
 coef(write_model_lasso)
 ```
+
+# Leverage one score 
+
+Since according to the corr plot, there are strong collinearity between the scores. We can just add one score (reading_score for example) to another score's model (maths_score for example) and see if the resulting model is improved. 
+
+
 
