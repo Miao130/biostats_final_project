@@ -57,12 +57,130 @@ reading_df = dplyr::select(step_df, -c(math_score, writing_score))
 
 writing_df = dplyr::select(step_df, -c(reading_score, math_score))
 ```
+
+## Step-wise: Backwards Elimination
+
+Math Score
+```{r}
+mult.fit = lm(math_score ~ ., data = math_df)
+summary(mult.fit)
+
+# No Transport Means
+step1 = update(mult.fit, . ~ . -transport_means)
+summary(step1)
+
+# No Is First Child
+step2 = update(step1, . ~ . -is_first_child)
+summary(step2)
+
+# No Practice Sport
+step3 = update(step2, . ~ . -practice_sport)
+summary(step3)
+
+# No Parent Marital Status
+step4 = update(step3, . ~ . -parent_marital_status)
+summary(step4)
+
+# No Number of Siblings
+step5 = update(step4, . ~ . -nr_siblings)
+summary(step5)
+
+# just use one function
+step(mult.fit, direction='backward')
+```
+With manual elimination, the model we obtained was Math Score ~ Gender + Ethnic
+Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Math Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
+Test Prep + Number of Siblings + Weekly Study Hours.
+
+
+Reading Score
+```{r}
+mult.fit = lm(reading_score ~ ., data = reading_df)
+summary(mult.fit)
+
+# No Parent Marital Status
+step1 = update(mult.fit, . ~ . -parent_marital_status)
+summary(step1)
+
+# No Is First Child
+step2 = update(step1, . ~ . -is_first_child)
+summary(step2)
+
+# No Transport Means
+step3 = update(step2, . ~ . -transport_means)
+summary(step3)
+
+# No Number of Siblings
+step4 = update(step3, . ~ . -nr_siblings)
+summary(step4)
+
+# No Practice Sport
+step5 = update(step4, . ~ . -practice_sport)
+summary(step5)
+
+# No Weekly Study Hours
+step6 = update(step5, . ~ . -wkly_study_hours)
+summary(step6)
+
+# just use one function
+step(mult.fit, direction='backward')
+```
+With manual elimination, the model we obtained was Reading Score ~ Gender + Ethnic
+Group + Parent Education + Lunch Type + Test Prep.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Reading Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
+Test Prep.
+
+Writing Score
+```{r}
+mult.fit = lm(writing_score ~ ., data = writing_df)
+summary(mult.fit)
+
+# No Is First Child
+step1 = update(mult.fit, . ~ . -is_first_child)
+summary(step1)
+
+# No Practice Sport
+step2 = update(step1, . ~ . -practice_sport)
+summary(step2)
+
+# No Transport Means
+step3 = update(step2, . ~ . -transport_means)
+summary(step3)
+
+# No Parent Marital Status
+step4 = update(step3, . ~ . -parent_marital_status)
+summary(step4)
+
+# No Number of Siblings
+step5 = update(step4, . ~ . -nr_siblings)
+summary(step5)
+
+# No Weekly Study Hours
+step6 = update(step5, . ~ . -wkly_study_hours)
+summary(step6)
+
+# just use one function
+step(mult.fit, direction='backward')
+
+```
+With manual elimination, the model we obtained was Writing Score ~ Gender + Ethnic
+Group + Parent Education + Lunch Type + Test Prep.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Writing Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
+Test Prep + Weekly Study Hours.
+
 ## Step-wise: Forward Elimination
 
 Math Score
 ```{r}
 
-mult.fit = lm(math_score ~ ., data = step_df)
+mult.fit = lm(math_score ~ ., data = math_df)
 
 ### Step 1:  Fit simple linear regressions for all variables,look for the variable with lowest p-value
 fit1 = lm(math_score ~ gender, data = step_df)
@@ -262,20 +380,25 @@ summary(fit5)
 # P-value of all new added variables are larger than 0.05, which means that they 
 # are not significant predictor, and we stop here.
 
-# The model we obtained is Math Score ~ Lunch Type + Ethnic Group + Test Prep +
-# Gender + Parent Education + Weekly Study Hours
-
 mult.fit.final = lm(math_score ~ lunch_type + ethnic_group + test_prep + 
     gender + parent_educ + wkly_study_hours, data = step_df)
 summary(mult.fit.final)
 
 # fit using one function
-intercept_only <- lm (math_score ~ 1, data = step_df)
+intercept_only <- lm (math_score ~ 1, data = math_df)
 step(intercept_only, direction = "forward", scope = formula(mult.fit))
 ```
+The model we obtained is Math Score ~ Lunch Type + Ethnic Group + Test Prep +
+Gender + Parent Education + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Math Score ~ LUnch Type + Ethnic Group + Test Prep + Gender + Parent
+Education + Weekly Study Hours + Number of Siblings.
+
+
 Reading Score
 ```{r}
-mult.fit = lm(reading_score ~ ., data = step_df)
+mult.fit = lm(reading_score ~ ., data = reading_df)
 
 ### Step 1:  Fit simple linear regressions for all variables,look for the variable with lowest p-value
 fit1 = lm(reading_score ~ gender, data = step_df)
@@ -461,12 +584,19 @@ mult.fit.final = lm(reading_score ~ lunch_type + gender + test_prep +
 summary(mult.fit.final)
 
 # fit using one function
-intercept_only <- lm (reading_score ~ 1, data = step_df)
+intercept_only <- lm (reading_score ~ 1, data = reading_df)
 step(intercept_only, direction = "forward", scope = formula(mult.fit))
 ```
+The model we obtained is Reading Score ~ Lunch Type + Ethnic Group + Test Prep +
+Gender + Parent Education + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Reading Score ~ Lunch Type + Gender + Test Prep + Parent Education + 
+Ethnic Group.
+
 Writing Score
 ```{r}
-mult.fit = lm(writing_score ~ ., data = step_df)
+mult.fit = lm(writing_score ~ ., data = writing_df)
 
 ### Step 1:  Fit simple linear regressions for all variables,look for the variable with lowest p-value
 fit1 = lm(writing_score ~ gender, data = step_df)
@@ -651,10 +781,21 @@ mult.fit.final = lm(writing_score ~ gender + lunch_type + test_prep +
 summary(mult.fit.final)
 
 # fit using one function
-intercept_only <- lm (writing_score ~ 1, data = step_df)
-step(intercept_only, direction = "forward", scope = formula(mult.fit))
-
+intercept_only <- lm (writing_score ~ 1, data = writing_df)
+fitt = step(intercept_only, direction = "forward", scope = formula(mult.fit))
+summary(fitt)
 ```
+The model we obtained is Writing Score ~ Lunch Type + Ethnic Group + Test Prep +
+Gender + Parent Education + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Writing Score ~ Gender + Lunch Type + Test Prep + Parent Education + Ethnic
+Group + Weekly Study Hours.
+
+It seems that when using the single-function method, for all scores and for both
+forwards and backwards elimination, extra variables were included despite their 
+individual p-values > 0.05; therefore the manually-selected models should be 
+used for comparison and validation.
 
 ## Step-wise + criteria-based: stepAIC()
 

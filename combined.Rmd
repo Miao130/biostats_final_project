@@ -392,14 +392,772 @@ The spread of residuals suggests the errors are somewhat symmetrically distribut
 * **F-statistic (14.63)** and **p-value (< 2.2e-16)**: The model is statistically significant, meaning it performs better than a model with no predictors.
 
 
-## Cleaned datasets
+## Cleaned datasets - updated by Nisha
 ```{r}
-math_df = dplyr::select(df_num, -c(reading_score, writing_score)) 
+set.seed(555)
 
-reading_df = dplyr::select(df_num, -c(math_score, writing_score))
+step_df = read_csv("data/Project_1_data.csv") |>
+  drop_na() |> janitor::clean_names() |>
+  mutate(
+    wkly_study_hours = ifelse(
+      wkly_study_hours == "10-May", "5-10", wkly_study_hours)
+  )|>
+  mutate(
+    gender = as.integer(factor(gender)),
+    ethnic_group = as.integer(factor(ethnic_group)),
+    parent_educ = as.integer(factor(
+      parent_educ,levels= c("some high school", "high school", 
+                            "associate's degree", "some college", 
+                            "bachelor's degree", "master's degree"))),
+    lunch_type = as.integer((factor(lunch_type))), 
+    test_prep = as.integer((factor(test_prep))),
+    parent_marital_status = as.integer((factor(parent_marital_status))), 
+    practice_sport = as.integer((factor(practice_sport, levels = c("never", "sometimes", "regularly")))), 
+    is_first_child = as.integer((factor(is_first_child))),
+    transport_means = as.integer((factor(transport_means))),
+     wkly_study_hours = as.integer((factor(wkly_study_hours,
+                              levels = c("< 5", "5-10", "> 10"))))
+  )
 
-writing_df = dplyr::select(df_num, -c(reading_score, math_score))
+math_df = dplyr::select(step_df, -c(reading_score, writing_score)) 
+
+reading_df = dplyr::select(step_df, -c(math_score, writing_score))
+
+writing_df = dplyr::select(step_df, -c(reading_score, math_score))
 ```
+
+## Step-wise: Backwards Elimination
+
+Math Score
+```{r}
+mult.fit = lm(math_score ~ ., data = math_df)
+summary(mult.fit)
+
+# No Transport Means
+step1 = update(mult.fit, . ~ . -transport_means)
+summary(step1)
+
+# No Is First Child
+step2 = update(step1, . ~ . -is_first_child)
+summary(step2)
+
+# No Practice Sport
+step3 = update(step2, . ~ . -practice_sport)
+summary(step3)
+
+# No Parent Marital Status
+step4 = update(step3, . ~ . -parent_marital_status)
+summary(step4)
+
+# No Number of Siblings
+step5 = update(step4, . ~ . -nr_siblings)
+summary(step5)
+
+# just use one function
+step(mult.fit, direction='backward')
+```
+With manual elimination, the model we obtained was Math Score ~ Gender + Ethnic
+Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Math Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
+Test Prep + Number of Siblings + Weekly Study Hours.
+
+
+Reading Score
+```{r}
+mult.fit = lm(reading_score ~ ., data = reading_df)
+summary(mult.fit)
+
+# No Parent Marital Status
+step1 = update(mult.fit, . ~ . -parent_marital_status)
+summary(step1)
+
+# No Is First Child
+step2 = update(step1, . ~ . -is_first_child)
+summary(step2)
+
+# No Transport Means
+step3 = update(step2, . ~ . -transport_means)
+summary(step3)
+
+# No Number of Siblings
+step4 = update(step3, . ~ . -nr_siblings)
+summary(step4)
+
+# No Practice Sport
+step5 = update(step4, . ~ . -practice_sport)
+summary(step5)
+
+# No Weekly Study Hours
+step6 = update(step5, . ~ . -wkly_study_hours)
+summary(step6)
+
+# just use one function
+step(mult.fit, direction='backward')
+```
+With manual elimination, the model we obtained was Reading Score ~ Gender + Ethnic
+Group + Parent Education + Lunch Type + Test Prep.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Reading Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
+Test Prep.
+
+Writing Score
+```{r}
+mult.fit = lm(writing_score ~ ., data = writing_df)
+summary(mult.fit)
+
+# No Is First Child
+step1 = update(mult.fit, . ~ . -is_first_child)
+summary(step1)
+
+# No Practice Sport
+step2 = update(step1, . ~ . -practice_sport)
+summary(step2)
+
+# No Transport Means
+step3 = update(step2, . ~ . -transport_means)
+summary(step3)
+
+# No Parent Marital Status
+step4 = update(step3, . ~ . -parent_marital_status)
+summary(step4)
+
+# No Number of Siblings
+step5 = update(step4, . ~ . -nr_siblings)
+summary(step5)
+
+# No Weekly Study Hours
+step6 = update(step5, . ~ . -wkly_study_hours)
+summary(step6)
+
+# just use one function
+step(mult.fit, direction='backward')
+
+```
+With manual elimination, the model we obtained was Writing Score ~ Gender + Ethnic
+Group + Parent Education + Lunch Type + Test Prep.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Writing Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
+Test Prep + Weekly Study Hours.
+
+## Step-wise: Forward Elimination
+
+Math Score
+```{r}
+
+mult.fit = lm(math_score ~ ., data = math_df)
+
+### Step 1:  Fit simple linear regressions for all variables,look for the variable with lowest p-value
+fit1 = lm(math_score ~ gender, data = step_df)
+summary(fit1)
+fit2 = lm(math_score ~ ethnic_group, data = step_df)
+summary(fit2)
+fit3 = lm(math_score ~ parent_educ, data = step_df)
+summary(fit3)
+fit4 = lm(math_score ~ lunch_type, data = step_df)
+summary(fit4)
+fit5 = lm(math_score ~ parent_marital_status, data = step_df)
+summary(fit5)
+fit6 = lm(math_score ~ practice_sport, data = step_df)
+summary(fit6)
+fit7 = lm(math_score ~ is_first_child, data = step_df)
+summary(fit7)
+fit8 = lm(math_score ~ nr_siblings, data = step_df)
+summary(fit8)
+fit9 = lm(math_score ~ transport_means, data = step_df)
+summary(fit9)
+fit10 = lm(math_score ~ wkly_study_hours, data = step_df)
+summary(fit10)
+fit11 = lm(math_score ~ test_prep, data = step_df)
+summary(fit11)
+
+# Enter first the one with the lowest p-value: Lunch Type
+forward1 = lm(math_score ~ lunch_type, data = step_df)
+first = summary(forward1)|> broom::tidy()
+
+
+### Step 2: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward1, . ~ . +gender)
+summary(fit1)
+
+fit2 = update(forward1, . ~ . +ethnic_group)
+summary(fit2)
+
+fit3 = update(forward1, . ~ . +parent_educ)
+summary(fit3)
+
+fit4 = update(forward1, . ~ . +parent_marital_status)
+summary(fit4)
+
+fit5 = update(forward1, . ~ . +practice_sport)
+summary(fit5)
+
+fit6 = update(forward1, . ~ . +is_first_child)
+summary(fit6)
+
+fit7 = update(forward1, . ~ . +nr_siblings)
+summary(fit7)
+
+fit8 = update(forward1, . ~ . +transport_means)
+summary(fit8)
+
+fit9 = update(forward1, . ~ . +wkly_study_hours)
+summary(fit9)
+
+fit10 = update(forward1, . ~ . +test_prep)
+summary(fit10)
+
+
+# Enter the one with the lowest p-value: Ethnic Group
+forward2 = update(forward1, . ~ . +ethnic_group)
+summary(fit2)
+
+### Step 3: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward2, . ~ . +gender)
+summary(fit1)
+
+fit2 = update(forward2, . ~ . +parent_educ)
+summary(fit2)
+
+fit3 = update(forward2, . ~ . +parent_marital_status)
+summary(fit3)
+
+fit4 = update(forward2, . ~ . +practice_sport)
+summary(fit4)
+
+fit5 = update(forward2, . ~ . +is_first_child)
+summary(fit5)
+
+fit6 = update(forward2, . ~ . +nr_siblings)
+summary(fit6)
+
+fit7 = update(forward2, . ~ . +transport_means)
+summary(fit7)
+
+fit8 = update(forward2, . ~ . +wkly_study_hours)
+summary(fit8)
+
+fit9 = update(forward2, . ~ . +test_prep)
+summary(fit9)
+
+
+# Enter the one with the lowest p-value: Test Prep
+forward3 = update(forward2, . ~ . + test_prep)
+summary(forward3)
+
+### Step 4: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward3, . ~ . +gender)
+summary(fit1)
+
+fit2 = update(forward3, . ~ . +parent_educ)
+summary(fit2)
+
+fit3 = update(forward3, . ~ . +parent_marital_status)
+summary(fit3)
+
+fit4 = update(forward3, . ~ . +practice_sport)
+summary(fit4)
+
+fit5 = update(forward3, . ~ . +is_first_child)
+summary(fit5)
+
+fit6 = update(forward3, . ~ . +nr_siblings)
+summary(fit6)
+
+fit7 = update(forward3, . ~ . +transport_means)
+summary(fit7)
+
+fit8 = update(forward3, . ~ . +wkly_study_hours)
+summary(fit8)
+
+
+# Enter the one with the lowest p-value: Gender
+forward4 = update(forward3, . ~ . + gender)
+summary(forward4)
+
+### Step 5: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward4, . ~ . +parent_educ)
+summary(fit1)
+
+fit2 = update(forward4, . ~ . +parent_marital_status)
+summary(fit2)
+
+fit3 = update(forward4, . ~ . +practice_sport)
+summary(fit3)
+
+fit4 = update(forward4, . ~ . +is_first_child)
+summary(fit4)
+
+fit5 = update(forward4, . ~ . +nr_siblings)
+summary(fit5)
+
+fit6 = update(forward4, . ~ . +transport_means)
+summary(fit6)
+
+fit7 = update(forward4, . ~ . +wkly_study_hours)
+summary(fit7)
+
+# Enter the one with the lowest p-value: Parent Education
+forward5 = update(forward4, . ~ . + parent_educ)
+summary(forward5)
+
+### Step 6: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward5, . ~ . +parent_marital_status)
+summary(fit1)
+
+fit2 = update(forward5, . ~ . +practice_sport)
+summary(fit2)
+
+fit3 = update(forward5, . ~ . +is_first_child)
+summary(fit3)
+
+fit4 = update(forward5, . ~ . +nr_siblings)
+summary(fit4)
+
+fit5 = update(forward5, . ~ . +transport_means)
+summary(fit5)
+
+fit6 = update(forward5, . ~ . +wkly_study_hours)
+summary(fit6)
+
+
+# Enter the one with the lowest p-value: Weekly Study Hours
+forward6 = update(forward5, . ~ . + wkly_study_hours)
+summary(forward6)
+
+### Step 7: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward6, . ~ . +parent_marital_status)
+summary(fit1)
+
+fit2 = update(forward6, . ~ . +practice_sport)
+summary(fit2)
+
+fit3 = update(forward6, . ~ . +is_first_child)
+summary(fit3)
+
+fit4 = update(forward6, . ~ . +nr_siblings)
+summary(fit4)
+
+fit5 = update(forward6, . ~ . +transport_means)
+summary(fit5)
+
+# P-value of all new added variables are larger than 0.05, which means that they 
+# are not significant predictor, and we stop here.
+
+mult.fit.final = lm(math_score ~ lunch_type + ethnic_group + test_prep + 
+    gender + parent_educ + wkly_study_hours, data = step_df)
+summary(mult.fit.final)
+
+# fit using one function
+intercept_only <- lm (math_score ~ 1, data = math_df)
+step(intercept_only, direction = "forward", scope = formula(mult.fit))
+```
+The model we obtained is Math Score ~ Lunch Type + Ethnic Group + Test Prep +
+Gender + Parent Education + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Math Score ~ LUnch Type + Ethnic Group + Test Prep + Gender + Parent
+Education + Weekly Study Hours + Number of Siblings.
+
+
+Reading Score
+```{r}
+mult.fit = lm(reading_score ~ ., data = reading_df)
+
+### Step 1:  Fit simple linear regressions for all variables,look for the variable with lowest p-value
+fit1 = lm(reading_score ~ gender, data = step_df)
+summary(fit1)
+fit2 = lm(reading_score ~ ethnic_group, data = step_df)
+summary(fit2)
+fit3 = lm(reading_score ~ parent_educ, data = step_df)
+summary(fit3)
+fit4 = lm(reading_score ~ lunch_type, data = step_df)
+summary(fit4)
+fit5 = lm(reading_score ~ parent_marital_status, data = step_df)
+summary(fit5)
+fit6 = lm(reading_score ~ practice_sport, data = step_df)
+summary(fit6)
+fit7 = lm(reading_score ~ is_first_child, data = step_df)
+summary(fit7)
+fit8 = lm(reading_score ~ nr_siblings, data = step_df)
+summary(fit8)
+fit9 = lm(reading_score ~ transport_means, data = step_df)
+summary(fit9)
+fit10 = lm(reading_score ~ wkly_study_hours, data = step_df)
+summary(fit10)
+fit11 = lm(reading_score ~ test_prep, data = step_df)
+summary(fit11)
+
+# Enter first the one with the lowest p-value: Lunch Type
+forward1 = lm(reading_score ~ lunch_type, data = step_df)
+summary(forward1)
+
+
+### Step 2: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward1, . ~ . +gender)
+summary(fit1)
+
+fit2 = update(forward1, . ~ . +ethnic_group)
+summary(fit2)
+
+fit3 = update(forward1, . ~ . +parent_educ)
+summary(fit3)
+
+fit4 = update(forward1, . ~ . +parent_marital_status)
+summary(fit4)
+
+fit5 = update(forward1, . ~ . +practice_sport)
+summary(fit5)
+
+fit6 = update(forward1, . ~ . +is_first_child)
+summary(fit6)
+
+fit7 = update(forward1, . ~ . +nr_siblings)
+summary(fit7)
+
+fit8 = update(forward1, . ~ . +transport_means)
+summary(fit8)
+
+fit9 = update(forward1, . ~ . +wkly_study_hours)
+summary(fit9)
+
+fit10 = update(forward1, . ~ . +test_prep)
+summary(fit10)
+
+
+# Enter the one with the lowest p-value: Gender
+forward2 = update(forward1, . ~ . +gender)
+summary(fit2)
+
+### Step 3: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward2, . ~ . +ethnic_group)
+summary(fit1)
+
+fit2 = update(forward2, . ~ . +parent_educ)
+summary(fit2)
+
+fit3 = update(forward2, . ~ . +parent_marital_status)
+summary(fit3)
+
+fit4 = update(forward2, . ~ . +practice_sport)
+summary(fit4)
+
+fit5 = update(forward2, . ~ . +is_first_child)
+summary(fit5)
+
+fit6 = update(forward2, . ~ . +nr_siblings)
+summary(fit6)
+
+fit7 = update(forward2, . ~ . +transport_means)
+summary(fit7)
+
+fit8 = update(forward2, . ~ . +wkly_study_hours)
+summary(fit8)
+
+fit9 = update(forward2, . ~ . +test_prep)
+summary(fit9)
+
+
+# Enter the one with the lowest p-value: Test Prep
+forward3 = update(forward2, . ~ . + test_prep)
+summary(forward3)
+
+### Step 4: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward3, . ~ . +ethnic_group)
+summary(fit1)
+
+fit2 = update(forward3, . ~ . +parent_educ)
+summary(fit2)
+
+fit3 = update(forward3, . ~ . +parent_marital_status)
+summary(fit3)
+
+fit4 = update(forward3, . ~ . +practice_sport)
+summary(fit4)
+
+fit5 = update(forward3, . ~ . +is_first_child)
+summary(fit5)
+
+fit6 = update(forward3, . ~ . +nr_siblings)
+summary(fit6)
+
+fit7 = update(forward3, . ~ . +transport_means)
+summary(fit7)
+
+fit8 = update(forward3, . ~ . +wkly_study_hours)
+summary(fit8)
+
+
+# Enter the one with the lowest p-value: Parent Education
+forward4 = update(forward3, . ~ . + parent_educ)
+summary(forward4)
+
+### Step 5: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward4, . ~ . +ethnic_group)
+summary(fit1)
+
+fit2 = update(forward4, . ~ . +parent_marital_status)
+summary(fit2)
+
+fit3 = update(forward4, . ~ . +practice_sport)
+summary(fit3)
+
+fit4 = update(forward4, . ~ . +is_first_child)
+summary(fit4)
+
+fit5 = update(forward4, . ~ . +nr_siblings)
+summary(fit5)
+
+fit6 = update(forward4, . ~ . +transport_means)
+summary(fit6)
+
+fit7 = update(forward4, . ~ . +wkly_study_hours)
+summary(fit7)
+
+# Enter the one with the lowest p-value: Ethnic Group
+forward5 = update(forward4, . ~ . + ethnic_group)
+summary(forward5)
+
+### Step 6: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward5, . ~ . +parent_marital_status)
+summary(fit1)
+
+fit2 = update(forward5, . ~ . +practice_sport)
+summary(fit2)
+
+fit3 = update(forward5, . ~ . +is_first_child)
+summary(fit3)
+
+fit4 = update(forward5, . ~ . +nr_siblings)
+summary(fit4)
+
+fit5 = update(forward5, . ~ . +transport_means)
+summary(fit5)
+
+fit6 = update(forward5, . ~ . +wkly_study_hours)
+summary(fit6)
+
+# P-value of all new added variables are larger than 0.05, which means that they 
+# are not significant predictor, and we stop here.
+
+mult.fit.final = lm(reading_score ~ lunch_type + gender + test_prep + 
+                      parent_educ + ethnic_group, data = step_df)
+summary(mult.fit.final)
+
+# fit using one function
+intercept_only <- lm (reading_score ~ 1, data = reading_df)
+step(intercept_only, direction = "forward", scope = formula(mult.fit))
+```
+The model we obtained is Reading Score ~ Lunch Type + Ethnic Group + Test Prep +
+Gender + Parent Education + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Reading Score ~ Lunch Type + Gender + Test Prep + Parent Education + 
+Ethnic Group.
+
+Writing Score
+```{r}
+mult.fit = lm(writing_score ~ ., data = writing_df)
+
+### Step 1:  Fit simple linear regressions for all variables,look for the variable with lowest p-value
+fit1 = lm(writing_score ~ gender, data = step_df)
+summary(fit1)
+fit2 = lm(writing_score ~ ethnic_group, data = step_df)
+summary(fit2)
+fit3 = lm(writing_score ~ parent_educ, data = step_df)
+summary(fit3)
+fit4 = lm(writing_score ~ lunch_type, data = step_df)
+summary(fit4)
+fit5 = lm(writing_score ~ parent_marital_status, data = step_df)
+summary(fit5)
+fit6 = lm(writing_score ~ practice_sport, data = step_df)
+summary(fit6)
+fit7 = lm(writing_score ~ is_first_child, data = step_df)
+summary(fit7)
+fit8 = lm(writing_score ~ nr_siblings, data = step_df)
+summary(fit8)
+fit9 = lm(writing_score ~ transport_means, data = step_df)
+summary(fit9)
+fit10 = lm(writing_score ~ wkly_study_hours, data = step_df)
+summary(fit10)
+fit11 = lm(writing_score ~ test_prep, data = step_df)
+summary(fit11)
+
+# Enter first the one with the lowest p-value: Gender
+forward1 = lm(writing_score ~ gender, data = step_df)
+summary(forward1)
+
+
+### Step 2: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward1, . ~ . +ethnic_group)
+summary(fit1)
+
+fit2 = update(forward1, . ~ . +parent_educ)
+summary(fit2)
+
+fit3 = update(forward1, . ~ . +parent_marital_status)
+summary(fit3)
+
+fit4 = update(forward1, . ~ . +practice_sport)
+summary(fit4)
+
+fit5 = update(forward1, . ~ . +is_first_child)
+summary(fit5)
+
+fit6 = update(forward1, . ~ . +nr_siblings)
+summary(fit6)
+
+fit7 = update(forward1, . ~ . +transport_means)
+summary(fit7)
+
+fit8 = update(forward1, . ~ . +wkly_study_hours)
+summary(fit8)
+
+fit9 = update(forward1, . ~ . +test_prep)
+summary(fit9)
+
+fit10 = update(forward1, . ~ . +lunch_type)
+summary(fit10)
+
+
+# Enter the one with the lowest p-value: Lunch Type
+forward2 = update(forward1, . ~ . +lunch_type)
+summary(fit2)
+
+### Step 3: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward1, . ~ . +ethnic_group)
+summary(fit1)
+
+fit2 = update(forward1, . ~ . +parent_educ)
+summary(fit2)
+
+fit3 = update(forward1, . ~ . +parent_marital_status)
+summary(fit3)
+
+fit4 = update(forward1, . ~ . +practice_sport)
+summary(fit4)
+
+fit5 = update(forward1, . ~ . +is_first_child)
+summary(fit5)
+
+fit6 = update(forward1, . ~ . +nr_siblings)
+summary(fit6)
+
+fit7 = update(forward1, . ~ . +transport_means)
+summary(fit7)
+
+fit8 = update(forward1, . ~ . +wkly_study_hours)
+summary(fit8)
+
+fit9 = update(forward1, . ~ . +test_prep)
+summary(fit9)
+
+# Enter the one with the lowest p-value: Test Prep
+forward3 = update(forward2, . ~ . + test_prep)
+summary(forward3)
+
+### Step 4: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward3, . ~ . +ethnic_group)
+summary(fit1)
+
+fit2 = update(forward3, . ~ . +parent_educ)
+summary(fit2)
+
+fit3 = update(forward3, . ~ . +parent_marital_status)
+summary(fit3)
+
+fit4 = update(forward3, . ~ . +practice_sport)
+summary(fit4)
+
+fit5 = update(forward3, . ~ . +is_first_child)
+summary(fit5)
+
+fit6 = update(forward3, . ~ . +nr_siblings)
+summary(fit6)
+
+fit7 = update(forward3, . ~ . +transport_means)
+summary(fit7)
+
+fit8 = update(forward3, . ~ . +wkly_study_hours)
+summary(fit8)
+
+
+# Enter the one with the lowest p-value: Parent Education
+forward4 = update(forward3, . ~ . + parent_educ)
+summary(forward4)
+
+### Step 5: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward4, . ~ . +ethnic_group)
+summary(fit1)
+
+fit2 = update(forward4, . ~ . +parent_marital_status)
+summary(fit2)
+
+fit3 = update(forward4, . ~ . +practice_sport)
+summary(fit3)
+
+fit4 = update(forward4, . ~ . +is_first_child)
+summary(fit4)
+
+fit5 = update(forward4, . ~ . +nr_siblings)
+summary(fit5)
+
+fit6 = update(forward4, . ~ . +transport_means)
+summary(fit6)
+
+fit7 = update(forward4, . ~ . +wkly_study_hours)
+summary(fit7)
+
+# Enter the one with the lowest p-value: Ethnic Group
+forward5 = update(forward4, . ~ . + ethnic_group)
+summary(forward5)
+
+### Step 6: Enter the one with the lowest p-value in the rest 
+fit1 = update(forward5, . ~ . +parent_marital_status)
+summary(fit1)
+
+fit2 = update(forward5, . ~ . +practice_sport)
+summary(fit2)
+
+fit3 = update(forward5, . ~ . +is_first_child)
+summary(fit3)
+
+fit4 = update(forward5, . ~ . +nr_siblings)
+summary(fit4)
+
+fit5 = update(forward5, . ~ . +transport_means)
+summary(fit5)
+
+fit6 = update(forward5, . ~ . +wkly_study_hours)
+summary(fit6)
+
+# P-value of all new added variables are larger than 0.05, which means that they 
+# are not significant predictor, and we stop here.
+
+
+mult.fit.final = lm(writing_score ~ gender + lunch_type + test_prep + 
+                      parent_educ + ethnic_group, data = step_df)
+summary(mult.fit.final)
+
+# fit using one function
+intercept_only <- lm (writing_score ~ 1, data = writing_df)
+fitt = step(intercept_only, direction = "forward", scope = formula(mult.fit))
+summary(fitt)
+```
+The model we obtained is Writing Score ~ Lunch Type + Ethnic Group + Test Prep +
+Gender + Parent Education + Weekly Study Hours.
+
+When using the single-function method, the model obtained with the lowest AIC
+was Writing Score ~ Gender + Lunch Type + Test Prep + Parent Education + Ethnic
+Group + Weekly Study Hours.
+
+It seems that when using the single-function method, for all scores and for both
+forwards and backwards elimination, extra variables were included despite their 
+individual p-values > 0.05; therefore the manually-selected models should be 
+used for comparison and validation.
 
 ## Step-wise + criteria-based: stepAIC()
 
