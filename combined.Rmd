@@ -759,7 +759,7 @@ The model we obtained is Math Score ~ Lunch Type + Ethnic Group + Test Prep +
 Gender + Parent Education + Weekly Study Hours.
 
 When using the single-function method, the model obtained with the lowest AIC
-was Math Score ~ LUnch Type + Ethnic Group + Test Prep + Gender + Parent
+was Math Score ~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent
 Education + Weekly Study Hours + Number of Siblings.
 
 
@@ -1292,6 +1292,8 @@ tibble(lambda = cv_object$lambda,
 write_model_lasso=glmnet(as.matrix(write_lasso[2:12]),write_lasso$writing_score,lambda=cv_object$lambda.min)
 coef(write_model_lasso)
 ```
+# Cross Validation
+
 
 # Leverage one score 
 
