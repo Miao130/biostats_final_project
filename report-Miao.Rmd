@@ -1,0 +1,19 @@
+---
+title: "report-Miao"
+author: "Miao Fu"
+date: "2023-12-13"
+output: pdf_document
+fontsize: 12pt
+header-includes: \usepackage{setspace}\doublespacing
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Introduction
+
+Education is an essential component of contemporary society, and the assessment of student performance through test scores is commonly seen. This research project focuses on studying the complex relationship between various socioeconomic factors and the test scores of public school students. Key variables, including ethnic group, parents' marital status, and weekly study hours, are considered as potential predictive variables of test score outcomes. Through statistical modeling, we aim to identify significant contributing factors and construct predictive models, providing a thorough understanding of the dynamics between socioeconomic factors and test performance.
+
+The chosen 11 covariates represent a spectrum of influences within students' socioenvironmental contexts and are presumed to be potentially relevant to one's academic performance. By combining all these factors into predictive models, our research aims to select out the variables that significantly shape test performance and recommend a final optimal model for each of three test scores(maths, writing, reading). Additionally, model comparisons will be conducted to evaluate the associations between covariates and test scores in a detailed and comprehensive way. This study contributes to the broader understanding of educational equity and may inform potential interventions to create a better education environment at public schools.
