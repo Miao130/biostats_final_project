@@ -1229,7 +1229,7 @@ results$which[5,]|>print()
 reading_criteria_fit = lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type+ test_prep, data = step_df)
 ```
 To predict reading score, the adjusted R^2 statistic and Cp and BIC plots shows that a 5-variable model is optimal. 
-The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, practice_sport, and wkly_study_hours. 
+The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep. 
 
 Writing Score
 ```{r}
@@ -1396,61 +1396,8 @@ cv_report_df = cv_df |>
                    na.action = na.pass)),
          final_model = map(model, \(i) i$finalModel),
          MSE = map(final_model, \(i) mean(i$residuals^2)))
+cv
 ```
-
-Reading:
-```{r}
-cv_df = 
-  crossv_mc(adj_top_df, 100) |> 
-  mutate(
-    train = map(train, as_tibble),
-    test = map(test, as_tibble)) |>
-  mutate(
-    lm = map(train, \(df) adj_top_df |>
-  dplyr::select(-duration_clean) |>
-  lm(log_duration ~ ., data = _)),
-    rmse_lm = map2_dbl(lm, test, \(mod, df) rmse(model = mod, data = df))
-  )
-
-cv_df |> 
-  dplyr::select(rmse_lm) |> 
-  pivot_longer(
-    everything(),
-    names_to = "model", 
-    values_to = "rmse",
-    names_prefix = "rmse_") |> 
-  mutate(model = fct_inorder(model)) |> 
-  ggplot(aes(x = model, y = rmse)) + geom_violin()  +
-  labs(title="RMSE of Cross Validation Model Adj vs Duration",
-        x ="Model", y = "RMSE")
-```
-Writing:
-```{r}
-cv_df = 
-  crossv_mc(adj_top_df, 100) |> 
-  mutate(
-    train = map(train, as_tibble),
-    test = map(test, as_tibble)) |>
-  mutate(
-    lm = map(train, \(df) adj_top_df |>
-  dplyr::select(-duration_clean) |>
-  lm(log_duration ~ ., data = _)),
-    rmse_lm = map2_dbl(lm, test, \(mod, df) rmse(model = mod, data = df))
-  )
-
-cv_df |> 
-  dplyr::select(rmse_lm) |> 
-  pivot_longer(
-    everything(),
-    names_to = "model", 
-    values_to = "rmse",
-    names_prefix = "rmse_") |> 
-  mutate(model = fct_inorder(model)) |> 
-  ggplot(aes(x = model, y = rmse)) + geom_violin()  +
-  labs(title="RMSE of Cross Validation Model Adj vs Duration",
-        x ="Model", y = "RMSE")
-```
-
 # Leverage one score 
 
 Since according to the corr plot, there are strong collinearity between the scores. We can just add one score (reading_score for example) to another score's model (maths_score for example) and see if the resulting model is improved. 
