@@ -297,9 +297,7 @@ model_math <- lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type +
 model_read <- lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
 model_write <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
 
-math_mlr_fit = model_math
-reading_mlr_fit = model_read
-writing_mlr_fit = model_write
+
 ```
 
 
@@ -1206,8 +1204,8 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-math_criteria_fit = results$which[7,]
-math_criteria_fit|>print()
+results$which[7,]|>print()
+math_criteria_fit = lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type+ test_prep + nr_siblings, wkly_study_hours, data = step_df)
 ```
 To predict math score, the adjusted R^2 statistic, Cp, and BIC plots in combination show that a 7-variable model is optimal. 
 The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, nr_siblings, and wkly study_hours. 
@@ -1227,11 +1225,11 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-reading_criteria_fit = results$which[5,]
-reading_criteria_fit |>print()
+results$which[5,]|>print()
+reading_criteria_fit = lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type+ test_prep, data = step_df)
 ```
 To predict reading score, the adjusted R^2 statistic and Cp and BIC plots shows that a 5-variable model is optimal. 
-The predictors selected are: gender, ethnic_grouop, parent_educ, lunch_type, test_prep, practice_sport, and wkly_study_hours. 
+The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, practice_sport, and wkly_study_hours. 
 
 Writing Score
 ```{r}
@@ -1248,8 +1246,8 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-writing_criteria_fit = results$which[5,]
-writing_criteria_fit|>print()
+results$which[5,] |>print()
+writing_criteria_fit = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep, data = step_df)
 ```
 To predict writing score, the adjusted R^2, Cp, and BIC statistics show that a 5-variable model is optimal. \
 The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep
@@ -1327,81 +1325,130 @@ Here are the summary of all the models included in this project
 # Clean out the variables used in stepwise analysis
 var_names = step_df |> dplyr::select(!ends_with("score"))  |> colnames()
 
+math_mlr_fit = lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + nr_siblings + wkly_study_hours, data = step_df)
+
+reading_mlr_fit = lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + wkly_study_hours, data = step_df)
+
+writing_mlr_fit = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + wkly_study_hours, data = step_df)
+
 cv_df = rbind(
- # math_mlr_fit,
+  math_mlr_fit,
   math_backward_manual_fit,
   math_backward_func_fit,
   math_forward_manual_fit,
   math_forward_func_fit,
-#  reading_mlr_fit,
+ reading_mlr_fit,
   reading_backward_manual_fit,
   reading_backward_func_fit,
   reading_forward_manual_fit,
   reading_forward_func_fit,
- # writing_mlr_fit,
+  writing_mlr_fit,
   writing_backward_manual_fit,
   writing_backward_func_fit,
   writing_forward_manual_fit,
-  writing_forward_func_fit)
-
-cv_df_rownames = cv_df |> row.names()
-cv_df_colnames = cv_df |> colnames()
-
-coef_df = rbind(
+  writing_forward_func_fit,
   math_criteria_fit,
   reading_criteria_fit,
   writing_criteria_fit)
 
-coef_df_rownames = coef_df |> row.names()
-
-coef_df = coef_df |>
-  as.data.frame() |>
-  cbind(coef_df_rownames) |>
-  rename(model_name = coef_df_rownames)
+cv_df_rownames = cv_df |> row.names()
+cv_df_colnames = cv_df |> colnames()
 
 cv_df = cv_df |> 
   as.data.frame() |>
   cbind(cv_df_rownames) |>
   rename(model_name = cv_df_rownames) |>
   dplyr::select( model_name, coefficients, terms) |>
+  mutate(coefficients = map(coefficients, \(coef) map(coef, ~ "X"))) |>
   unnest_wider(coefficients) |>
-  mutate(across(-c(model_name, terms), \(i) ifelse(is.na(i), FALSE, TRUE))) |>
-  bind_rows(coef_df) |>
   mutate(
-    across(-c(model_name, terms), \(i) ifelse(i, "X", NA)),
     subject = map(model_name, \(i) str_extract(i, "^[:alpha:]+")),
     test = map(model_name, \(i) str_extract(i, "(?<=_)[:alpha:]+")),
     manual = map(model_name, \(i) str_extract(i, "(?<=_)[:alpha:]+(?=_fit)"))
   ) |>
   dplyr::select(-model_name) |>
-  relocate(subject, test, manual)
+  relocate(subject, test, manual, terms)
 
 cv_df |>
   dplyr::select(-terms) |>
   knitr::kable()%>%
 kable_styling("striped", full_width = F) %>%
   row_spec(0, angle = -90)
+
+set.seed(1)
+# Use 5-fold validation and create the training sets
+train = trainControl(method = "cv", number = 5)
+
+
+# Fit the 4-variables model that we discussed in previous lectures
+
+
+#model_caret$finalModel
+#print(model_caret)
+```
+```{r}
+cv_report_df = cv_df |>
+  dplyr::select(subject, test, manual, terms) |>
+  mutate(model = map(terms, \(formula) train(as.formula(formula),
+                   data = step_df,
+                   trControl = train,
+                   method = 'lm',
+                   na.action = na.pass)),
+         final_model = map(model, \(i) i$finalModel),
+         MSE = map(final_model, \(i) mean(i$residuals^2)))
 ```
 
+Reading:
 ```{r}
-coef_names = cv_df |> dplyr::select(-c(subject, test, manual, "(Intercept)", terms)) |> colnames()
-                             
-k = cv_df |> 
-  nest(-c(subject, test, manual, "(Intercept)", terms)) |>
-  mutate(data = map(data, as.list),
-         data = cbind(data, colnames))
+cv_df = 
+  crossv_mc(adj_top_df, 100) |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)) |>
+  mutate(
+    lm = map(train, \(df) adj_top_df |>
+  dplyr::select(-duration_clean) |>
+  lm(log_duration ~ ., data = _)),
+    rmse_lm = map2_dbl(lm, test, \(mod, df) rmse(model = mod, data = df))
+  )
+
+cv_df |> 
+  dplyr::select(rmse_lm) |> 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") |> 
+  mutate(model = fct_inorder(model)) |> 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()  +
+  labs(title="RMSE of Cross Validation Model Adj vs Duration",
+        x ="Model", y = "RMSE")
 ```
+Writing:
 ```{r}
-helper = function(li, names_li){
-  toReturn = ""
-  for( i in 1:length(li)){
-    if(names_li[i]){
-      
-    }else{
-    
-    }
-  }
-}
+cv_df = 
+  crossv_mc(adj_top_df, 100) |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)) |>
+  mutate(
+    lm = map(train, \(df) adj_top_df |>
+  dplyr::select(-duration_clean) |>
+  lm(log_duration ~ ., data = _)),
+    rmse_lm = map2_dbl(lm, test, \(mod, df) rmse(model = mod, data = df))
+  )
+
+cv_df |> 
+  dplyr::select(rmse_lm) |> 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") |> 
+  mutate(model = fct_inorder(model)) |> 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()  +
+  labs(title="RMSE of Cross Validation Model Adj vs Duration",
+        x ="Model", y = "RMSE")
 ```
 
 # Leverage one score 
