@@ -9,6 +9,8 @@ output: pdf_document
 knitr::opts_chunk$set(echo=FALSE, message=FALSE,warning=FALSE)
 library(tidyverse)
 library(dplyr)
+library(kableExtra)
+library(knitr)
 library(patchwork)
 library(corrplot)
 library(gtsummary)
@@ -294,6 +296,10 @@ By plotting our the pairwise correlation between variables, there is apparent li
 model_math <- lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
 model_read <- lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
 model_write <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_means + wkly_study_hours, data = df_transformed)
+
+math_mlr_fit = model_math
+reading_mlr_fit = model_read
+writing_mlr_fit = model_write
 ```
 
 
@@ -450,13 +456,13 @@ step4 = update(step3, . ~ . -parent_marital_status)
 summary(step4)
 
 # No Number of Siblings
-step5 = update(step4, . ~ . -nr_siblings)
-summary(step5)
-fin = summary(step5)
+math_backward_manual_fit = update(step4, . ~ . -nr_siblings)
+summary(math_backward_manual_fit)
+fin = summary(math_backward_manual_fit)
 
 # just use one function
-one_fun = step(mult.fit, direction='backward')
-one_fun_fin = summary(one_fun)
+math_backward_func_fit = step(mult.fit, direction='backward')
+one_fun_fin = summary(math_backward_func_fit)
 ```
 With manual elimination, the model we obtained was Math Score ~ Gender + Ethnic
 Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
@@ -494,13 +500,13 @@ step5 = update(step4, . ~ . -practice_sport)
 summary(step5)
 
 # No Weekly Study Hours
-step6 = update(step5, . ~ . -wkly_study_hours)
-summary(step6)
-fin = summary(step6)
+reading_backward_manual_fit = update(step5, . ~ . -wkly_study_hours)
+fin = summary(reading_backward_manual_fit)
+fin
 
 # just use one function
-one_fun = step(mult.fit, direction='backward')
-one_fun_fin = fin
+reading_backward_func_fit = step(mult.fit, direction='backward')
+one_fun_fin = summary(reading_backward_func_fit)
 ```
 With manual elimination, the model we obtained was Reading Score ~ Gender + Ethnic
 Group + Parent Education + Lunch Type + Test Prep.
@@ -536,13 +542,12 @@ step5 = update(step4, . ~ . -nr_siblings)
 summary(step5)
 
 # No Weekly Study Hours
-step6 = update(step5, . ~ . -wkly_study_hours)
-summary(step6)
-fin = summary(step6)
+writing_backward_manual_fit = update(step5, . ~ . -wkly_study_hours)
+fin = summary(writing_backward_manual_fit)
 
 # just use one function
-fitt = step(mult.fit, direction='backward')
-one_fun_fin = summary(fitt)
+writing_backward_func_fit = step(mult.fit, direction='backward')
+one_fun_fin = summary(writing_backward_func_fit)
 ```
 With manual elimination, the model we obtained was Writing Score ~ Gender + Ethnic
 Group + Parent Education + Lunch Type + Test Prep.
@@ -757,14 +762,14 @@ summary(fit5)
 # P-value of all new added variables are larger than 0.05, which means that they 
 # are not significant predictor, and we stop here.
 
-mult.fit.final = lm(math_score ~ lunch_type + ethnic_group + test_prep + 
+math_forward_manual_fit = lm(math_score ~ lunch_type + ethnic_group + test_prep + 
     gender + parent_educ + wkly_study_hours, data = step_df)
-fin = summary(mult.fit.final)
+fin = summary(math_forward_manual_fit)
 
 # fit using one function
 intercept_only <- lm (math_score ~ 1, data = math_df)
-one_fun = step(intercept_only, direction = "forward", scope = formula(mult.fit))
-one_fun_fin = summary(one_fun)
+math_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
+one_fun_fin = summary(math_forward_func_fit)
 ```
 The model we obtained is Math Score ~ Lunch Type + Ethnic Group + Test Prep +
 Gender + Parent Education + Weekly Study Hours.
@@ -959,14 +964,14 @@ summary(fit6)
 # The model we obtained is Reading Score ~ Lunch Type + Gender + Test Prep + 
 # Parent Education + Ethnic Group
 
-mult.fit.final = lm(reading_score ~ lunch_type + gender + test_prep + 
+reading_forward_manual_fit = lm(reading_score ~ lunch_type + gender + test_prep + 
                       parent_educ + ethnic_group, data = step_df)
-fin = summary(mult.fit.final)
+fin = summary(reading_forward_manual_fit)
 
 # fit using one function
 intercept_only <- lm (reading_score ~ 1, data = reading_df)
-one_fun = step(intercept_only, direction = "forward", scope = formula(mult.fit))
-one_fun_fin = summary(one_fun)
+reading_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
+one_fun_fin = summary(reading_forward_func_fit)
 
 ```
 The model we obtained is Reading Score ~ Lunch Type + Gender + Test Prep + 
@@ -1158,14 +1163,14 @@ summary(fit6)
 # The model we obtained is Writing Score ~ Gender + Lunch Type + Test Prep +
 # Parent Education + Ethnic Group
 
-mult.fit.final = lm(writing_score ~ gender + lunch_type + test_prep + 
+writing_forward_manual_fit = lm(writing_score ~ gender + lunch_type + test_prep + 
                       parent_educ + ethnic_group, data = step_df)
-fin = summary(mult.fit.final)
+fin = summary(writing_forward_manual_fit)
 
 # fit using one function
 intercept_only <- lm (writing_score ~ 1, data = writing_df)
-fitt = step(intercept_only, direction = "forward", scope = formula(mult.fit))
-one_fun_fin = summary(fitt)
+writing_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
+one_fun_fin = summary(writing_forward_func_fit)
 ```
 The model we obtained is Writing Score ~ Lunch Type + Ethnic Group + Test Prep +
 Gender + Parent Education + Weekly Study Hours.
@@ -1201,7 +1206,8 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-results$which[7,]|>print()
+math_criteria_fit = results$which[7,]
+math_criteria_fit|>print()
 ```
 To predict math score, the adjusted R^2 statistic, Cp, and BIC plots in combination show that a 7-variable model is optimal. 
 The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, nr_siblings, and wkly study_hours. 
@@ -1221,7 +1227,8 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-results$which[5,]|>print()
+reading_criteria_fit = results$which[5,]
+reading_criteria_fit |>print()
 ```
 To predict reading score, the adjusted R^2 statistic and Cp and BIC plots shows that a 5-variable model is optimal. 
 The predictors selected are: gender, ethnic_grouop, parent_educ, lunch_type, test_prep, practice_sport, and wkly_study_hours. 
@@ -1241,7 +1248,8 @@ tibble(predictors = 1:11,
   geom_point(show.legend = F) +
   facet_wrap(~ statistic, scales = "free")
 
-results$which[5,]|>print()
+writing_criteria_fit = results$which[5,]
+writing_criteria_fit|>print()
 ```
 To predict writing score, the adjusted R^2, Cp, and BIC statistics show that a 5-variable model is optimal. \
 The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep
@@ -1313,7 +1321,88 @@ write_model_lasso=glmnet(as.matrix(write_lasso[2:12]),write_lasso$writing_score,
 coef(write_model_lasso)
 ```
 # Cross Validation
+Here are the summary of all the models included in this project
 
+```{r}
+# Clean out the variables used in stepwise analysis
+var_names = step_df |> dplyr::select(!ends_with("score"))  |> colnames()
+
+cv_df = rbind(
+ # math_mlr_fit,
+  math_backward_manual_fit,
+  math_backward_func_fit,
+  math_forward_manual_fit,
+  math_forward_func_fit,
+#  reading_mlr_fit,
+  reading_backward_manual_fit,
+  reading_backward_func_fit,
+  reading_forward_manual_fit,
+  reading_forward_func_fit,
+ # writing_mlr_fit,
+  writing_backward_manual_fit,
+  writing_backward_func_fit,
+  writing_forward_manual_fit,
+  writing_forward_func_fit)
+
+cv_df_rownames = cv_df |> row.names()
+cv_df_colnames = cv_df |> colnames()
+
+coef_df = rbind(
+  math_criteria_fit,
+  reading_criteria_fit,
+  writing_criteria_fit)
+
+coef_df_rownames = coef_df |> row.names()
+
+coef_df = coef_df |>
+  as.data.frame() |>
+  cbind(coef_df_rownames) |>
+  rename(model_name = coef_df_rownames)
+
+cv_df = cv_df |> 
+  as.data.frame() |>
+  cbind(cv_df_rownames) |>
+  rename(model_name = cv_df_rownames) |>
+  dplyr::select( model_name, coefficients, terms) |>
+  unnest_wider(coefficients) |>
+  mutate(across(-c(model_name, terms), \(i) ifelse(is.na(i), FALSE, TRUE))) |>
+  bind_rows(coef_df) |>
+  mutate(
+    across(-c(model_name, terms), \(i) ifelse(i, "X", NA)),
+    subject = map(model_name, \(i) str_extract(i, "^[:alpha:]+")),
+    test = map(model_name, \(i) str_extract(i, "(?<=_)[:alpha:]+")),
+    manual = map(model_name, \(i) str_extract(i, "(?<=_)[:alpha:]+(?=_fit)"))
+  ) |>
+  dplyr::select(-model_name) |>
+  relocate(subject, test, manual)
+
+cv_df |>
+  dplyr::select(-terms) |>
+  knitr::kable()%>%
+kable_styling("striped", full_width = F) %>%
+  row_spec(0, angle = -90)
+```
+
+```{r}
+coef_names = cv_df |> dplyr::select(-c(subject, test, manual, "(Intercept)", terms)) |> colnames()
+                             
+k = cv_df |> 
+  nest(-c(subject, test, manual, "(Intercept)", terms)) |>
+  mutate(data = map(data, as.list),
+         data = cbind(data, colnames))
+```
+```{r}
+helper = function(li, names_li){
+  toReturn = ""
+  for( i in 1:length(li)){
+    if(names_li[i]){
+      
+    }else{
+    
+    }
+  }
+}
+```
 
 # Leverage one score 
 
