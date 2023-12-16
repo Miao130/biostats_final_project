@@ -5,6 +5,7 @@ date: "2023-12-07"
 output: pdf_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, message=FALSE,warning=FALSE)
 library(tidyverse)
@@ -23,6 +24,8 @@ library(caret)
 library(modelr)
 library(mgcv)
 ```
+
+# summary statistics 
 
 ```{r}
 # read datafile
@@ -73,9 +76,7 @@ df_num=df|>
   )
 ```
 
-# Descriptive summary statistics for all variables 
 
-Two table with summary information on the descriptive statistics of all variables are listed below. The frequency and percentage of each categories in each categorical variable is listed out. For each numeric variable, the table includes values of mean, median, standard deviation, minimum, maximum, Q1 and Q3 values. 
 ```{r, include=FALSE}
 # categorical
 sum_stats_cat = function(data) {
@@ -128,25 +129,21 @@ results_num=df|>
 ```
 
 ## Categorical Variables
-```{r,echo=FALSE}
+```{r,include=TRUE,echo=FALSE}
 do.call(rbind, results_cat)|>
   rownames_to_column(var="variable")|>
   separate(variable,into=c("variable","category"),sep="\\.")|>
-  knitr::kable()
+  knitr::kable(caption="table 1")
 ```
 
 ## Numeric Variables
-```{r,echo=FALSE}
+```{r,include=TRUE,echo=FALSE}
 do.call(rbind, results_num)|>
   rownames_to_column(var = "variable")|>
-  knitr::kable()
+  knitr::kable(caption="table 2")
 ```
 
-# Exploration of outcome variables
-
-The outcome of this study includes the following variables: maths scores, reading scores, and writing scores. QQplots of the outcome variables are created to explore the distribution of each score. QQplot compares the quantiles of the data against the quantiles of  a normal distribution. According the plots, majority of the data points of all three scores follow the straight qqline, which indicates they follow the normal distribution. However, there are some deviations from the line on the two ends of the distribution, which indicates the distributions might have heavier tails than normal distribution. To further explore the distribution of outcomes, histograms and boxplots for the scores were incorporated. They are slightly left-tailed but mainly normally distributed. Thus, transformations are tested in the later section to further investigate the variables. 
-
-```{r,echo=FALSE}
+```{r,include=True,echo=FALSE}
 
 # qqplots of 3 scores
 qq_math=df|>
@@ -174,7 +171,9 @@ qq_reading=df|>
   ylab("Sample Quantiles")
 
 (qq_math+qq_reading)/qq_writing
+```
 
+```{r}
 # distribution for 3 scores
 
 maths_hist=df|>
@@ -231,10 +230,10 @@ writing_box=df|>
 (maths_hist+maths_box)/(reading_hist+reading_box)/(writing_hist+writing_box)
 ```
 
-# Exploration of predictor variables
 
 ```{r}
 par(mfrow=c(2,3))
+barplot(table(df_transformed$math_score),main='maths score')
 barplot(table(df_transformed$gender), main='Gender')
 barplot(table(df_transformed$ethnic_group), main='Ethnic Group')
 barplot(table(df_transformed$lunch_type), main='Lunch Type')
@@ -248,9 +247,7 @@ barplot(table(df_transformed$transport_means), main='Transport Means')
 barplot(table(df_transformed$wkly_study_hours), main='Weekly Study Hours')
 
 ```
-From the distribution bar graphs, it was decided that no transformation is needed for any predictor variables. Admittedly, the distributions might not be good references for transformation because the variables are all categorical. 
 
-# Potential transformations for outcome variables 
 
 ```{r}
 # Log, Sqrt, and Inverse transformation of outcomes
@@ -279,17 +276,16 @@ hist(df_eda$sqWrite, main="sq(Writing Score)",xlab="Score")
 hist(df_eda$inWrite, main="in(Writing Score)",xlab="Score")
 
 ```
-Since the distribution of the three scores showed slightly left-tailed, three types of transformations were tested: 1) Natural logarithm 2) Square Root 3) Inverse. The resulting plots are plotted in histograms shown above. There is no apparent improvement on the distribution of the outcome through the three transformations. Thus, the orignial outcome data were chosen to be used in following statistical modeling steps. 
 
-# Pairwise relationships
 
-```{r}
+By plotting our the pairwise correlation between variables, there is apparent linearity among the three scores. Other correlation coefficients are relatively small, indicating weak linear relationship between the variables. 
+
+```{r,include=TRUE,echo=FALSE}
 df_num|>
   cor()|>
   corrplot(type = "upper", diag = FALSE)
 ```
 
-By plotting our the pairwise correlation between variables, there is apparent linearity among the three scores. Other correlation coefficients are relatively small, indicating weak linear relationship between the variables. 
 
 # MLR lm()
 
