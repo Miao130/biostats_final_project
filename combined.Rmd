@@ -1320,31 +1320,31 @@ tibble(lambda = cv_object$lambda,
 write_model_lasso=glmnet(as.matrix(write_lasso[2:12]),write_lasso$writing_score,lambda=cv_object$lambda.min)
 coef(write_model_lasso)
 ```
-# Cross Validation
-Here are the summary of all the models included in this project
 
+# Cross Validation
+Here are the summary of all the models that have been created in this project.
 ```{r}
 # Clean out the variables used in stepwise analysis
 var_names = step_df |> dplyr::select(!ends_with("score"))  |> colnames()
 
-math_mlr_fit = lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + nr_siblings + wkly_study_hours, data = step_df)
+math_theoretical_fit = lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + nr_siblings + wkly_study_hours, data = step_df)
 
-reading_mlr_fit = lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + wkly_study_hours, data = step_df)
+reading_theoretical_fit = lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + wkly_study_hours, data = step_df)
 
-writing_mlr_fit = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + wkly_study_hours, data = step_df)
+writing_theoretical_fit = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + wkly_study_hours, data = step_df)
 
-cv_report_df = rbind(
-  math_mlr_fit,
+models_report_df = rbind(
+  math_theoretical_fit,
   math_backward_manual_fit,
   math_backward_func_fit,
   math_forward_manual_fit,
   math_forward_func_fit,
- reading_mlr_fit,
+ reading_theoretical_fit,
   reading_backward_manual_fit,
   reading_backward_func_fit,
   reading_forward_manual_fit,
   reading_forward_func_fit,
-  writing_mlr_fit,
+  writing_theoretical_fit,
   writing_backward_manual_fit,
   writing_backward_func_fit,
   writing_forward_manual_fit,
@@ -1353,48 +1353,51 @@ cv_report_df = rbind(
   reading_criteria_fit,
   writing_criteria_fit)
 
-cv_report_df_rownames = cv_report_df |> row.names()
-cv_report_df_colnames = cv_report_df |> colnames()
+models_report_df_rownames = models_report_df |> row.names()
+models_report_df_colnames = models_report_df |> colnames()
 
-cv_report_df = cv_report_df |> 
+models_report_df = models_report_df |> 
   as.data.frame() |>
-  cbind(cv_report_df_rownames) |>
-  rename(model_name = cv_report_df_rownames) |>
+  cbind(models_report_df_rownames) |>
+  rename(model_name = models_report_df_rownames) |>
   dplyr::select( model_name, coefficients, terms) |>
   mutate(coefficients = map(coefficients, \(coef) map(coef, ~ "X"))) |>
   unnest_wider(coefficients) |>
   mutate(
     subject = map(model_name, \(i) str_extract(i, "^[:alpha:]+")),
-    method = map(model_name, \(i) str_extract(i, "(?<=_)[:alpha:]+")),
-    manual = map(model_name, \(i) str_extract(i, "(?<=_)[:alpha:]+(?=_fit)"))
+    method = map(model_name, \(i) str_extract(i, "(?<=[:alpha:]_).+(?=_fit)"))
   ) |>
   dplyr::select(-model_name) |>
-  relocate(subject,method, manual, terms)
+  relocate(subject,method, terms)
 
-cv_report_df |>
+models_report_df |>
   dplyr::select(-terms) |>
   knitr::kable()%>%
 kable_styling("striped", full_width = F) %>%
   row_spec(0, angle = -90)
 ```
+
+We will be performing cross validation to select the best model resulted from the models above.
+
 ## Method from the lecture code
 ```{r}
 set.seed(1)
 # Use 5-fold validation and create the training sets
 train = trainControl(method = "cv", number = 5)
 
-cv_lecture_df = cv_report_df |>
-  dplyr::select(subject, method, manual, terms) |>
+cv_lecture_df = models_report_df |>
+  dplyr::select(subject, method, terms) |>
   mutate(model = map(terms, \(formula) train(as.formula(formula),
                    data = step_df,
                    trControl = train,
                    method = 'lm',
                    na.action = na.pass)),
-         model = map(model, \(i) i$finalModel[[1]]))
+         model = map(model, \(i) i$finalModel),
+         MSE = map(model, \(i) mean(i$residuals^2)))
 ```
 
-## Method from Data Science
-```{r}
+## Method using crossv_mc
+```{r warning=TRUE}
 set.seed(1)
 cv_ds_df = 
   modelr::crossv_mc(step_df, 100) |>
@@ -1406,32 +1409,34 @@ cv_ds_df =
   unnest(fits) |>
   unnest_wider(fits, strict = TRUE, names_repair = "minimal") |>
   mutate(
-    method = map2(method, manual,  \(i,j) ifelse(j == "manual" | j == "func", paste0(i, "_", j), paste0(i)))) |>
-  dplyr::select(-manual) |>
-  mutate(
     cv_model = map2(train, terms, \(df, i) lm(as.formula(i), data = df)),
     cv_mse = map2(cv_model, test, \(mod, df) mse(model = mod, data = df)),
     cv_mse = as.numeric(cv_mse),
     method = as.character(method)
   )
 ```
+Notice how `practice_sport` and `transport_means` are not selected in any of the model selections methods. This will be reported at the effect modifier section.
 
 ## Cross Validation - Math
 
 ### Method from the lecture codes
 ```{r}
-math_cv_report_df = cv_lecture_df |>
+math_models_report_df = cv_lecture_df |>
   filter(subject == "math")
 
-math_cv_report_df = math_cv_report_df |>
-  filter(MSE == min(math_cv_report_df$MSE |> unlist()))
+math_models_report_df |>
+  dplyr::select(method, MSE) |>
+  knitr::kable()
+
+math_models_report_df = math_models_report_df |>
+  filter(MSE == min(math_models_report_df$MSE |> unlist()))
 
 # Only one value
-math_best_fit = math_cv_report_df$model[[1]]
-``````
-The model with the best MSE for Math is `r paste(math_cv_report_df$terms)`, which uses `r paste(math_cv_report_df$test)` as a method of approach.
+math_best_fit = math_models_report_df$model[[1]]
+```
+The model with the best MSE for Math is `r paste(math_models_report_df$terms)`, which uses `r paste(math_models_report_df$method)` as a method of approach.
 
-### Method from Data Science
+### Method using crossv_mc
 ```{r}
 cv_ds_df |> 
   filter(subject == "math") |> 
@@ -1446,33 +1451,28 @@ cv_ds_df |>
   summarize(average_mse = mean(cv_mse)) |>
   knitr::kable()
 ```
-We noticed that the the best model is the one that uses forward elimination with one line code and backward elimination with one line code. The model is `r cv_report_df |> filter(subject == "math", method == "forward", manual == "func") |> pull(terms) |> paste()`
-
-
-```{r}
-cv_ds_df |> 
-  filter(subject == "math") |> 
-  group_by(method) |>
-  ggplot(aes(x = method, y = cv_rmse)) +
-  geom_violin()
-```
+We noticed that the the best model is the one that uses forward elimination with one line code and backward elimination with one line code. The model is `r models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()`
 
 ## Cross Validation - Reading
 
 ### Method from the lecture codes
 ```{r}
-reading_cv_report_df = cv_lecture_df |>
+reading_models_report_df = cv_lecture_df |>
   filter(subject == "reading")
 
-reading_cv_report_df = reading_cv_report_df |>
-  filter(MSE == min(reading_cv_report_df$MSE |> unlist()))
+reading_models_report_df |>
+  dplyr::select(method, MSE) |>
+  knitr::kable()
+
+reading_models_report_df = reading_models_report_df |>
+  filter(MSE == min(reading_models_report_df$MSE |> unlist()))
 
 # Only one value
-reading_best_fit = reading_cv_report_df$model[[1]]
+reading_best_fit = reading_models_report_df$model[[1]]
 ```
-The model with the best MSE for Reading is `r paste(reading_cv_report_df$terms)`, which uses `r paste(reading_cv_report_df$test)` as a method of approach.
+The model with the best MSE for Reading is `r paste(reading_models_report_df$terms)`, which uses `r paste(reading_models_report_df$method)` as a method of approach.
 
-### Method from Data Science
+### Method using crossv_mc
 ```{r}
 cv_ds_df |> 
   filter(subject == "reading") |> 
@@ -1487,27 +1487,28 @@ cv_ds_df |>
   summarize(average_mse = mean(cv_mse)) |>
   knitr::kable()
 ```
-We noticed that the the best model is the model that is picked by forward and backward elimination method and criterion based approach. The model is `r cv_report_df |> filter(subject == "reading", method == "forward", manual == "func") |> pull(terms) |> paste()`
+We noticed that the the best model is the model that is picked by forward and backward elimination method and criterion based approach. The model is `r models_report_df |> filter(subject == "reading", method == "forward_func") |> pull(terms) |> paste()`
 
 ## Cross Validation - Writing
 ### Method from the lecture codes
 ```{r}
-writing_cv_report_df = cv_lecture_df |>
+writing_models_report_df = cv_lecture_df |>
   filter(subject == "writing")
 
-writing_cv_report_df |>
-  
+writing_models_report_df |>
+  dplyr::select(method, MSE) |>
+  knitr::kable()
 
-writing_cv_report_df = writing_cv_report_df |>
-  filter(MSE == min(writing_cv_report_df$MSE |> unlist()))
+writing_models_report_df = writing_models_report_df |>
+  filter(MSE == min(writing_models_report_df$MSE |> unlist()))
 
 # Only one value
-writing_best_fit = writing_cv_report_df$model[[1]]
+writing_best_fit = writing_models_report_df$model[[1]]
 ```
-The model with the best MSE for Writing is `r paste(writing_cv_report_df$terms)`, which uses `r paste(writing_cv_report_df$test)` as a method of approach.
+The model with the best MSE for Writing is `r paste(writing_models_report_df$terms)`, which uses `r paste(writing_models_report_df$method)` as a method of approach.
 
-### Method from Data Science
-```{r}
+### Method using crossv_mc
+```{r warning=TRUE}
 cv_ds_df |> 
   filter(subject == "writing") |> 
   group_by(method) |>
@@ -1521,14 +1522,30 @@ cv_ds_df |>
   summarize(average_mse = mean(cv_mse)) |>
   knitr::kable()
 ```
-We noticed that the the best model is the one that uses forward elimination with one line code and backward elimination with one line code. The model is `r cv_report_df |> filter(subject == "writing", method == "forward", manual == "func") |> pull(terms) |> paste()`
+We noticed that the the best model is the one that uses forward elimination with one line code and backward elimination with one line code. The model is `r models_report_df |> filter(subject == "writing", method == "forward_func") |> pull(terms) |> paste()`
 
 # Effect Modifier
-To check over effect modifier, we will take the methods logically. 
-Effect modification occurs when
+We will take a logical approach to get the effect modification within the variables. 
+
+* The variables provided to measure the scores are `r step_df |> dplyr::select(-ends_with("score")) |> colnames() |> paste(sep = ',')`. `is_first_child` and the `nr_siblings` can be related since if the person have no siblings, then the probability that they are the first child is 1. 
+
+* If the person practice sports(`practice_sport`, then they are less likely to take the bus (`transport_means`) back to their location. 
+
+* `gender`, `ethnic_group`, `parent_educ`, `parent_marital_status`, `transport_means` can all affect the person's family financial background. This can be reflected directly with `lunch_type`. We will only evaluate the effect of `gender`, `ethnic_group` on `lunch_type`.
+
+* `practice_sport` can affect the `wkly_study_hours` as the sports will take up chunks of time to study.
+
+The models that will be used in the effect modifier section are the models that are selected using `crossv_mc()` function, i.e.
+`r models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()`
+
+`r models_report_df |> filter(subject == "reading", method == "forward_func") |> pull(terms) |> paste()`
+
+`r models_report_df |> filter(subject == "writing", method == "forward_func") |> pull(terms) |> paste()`
+
 ```{r}
 
 ```
+
 
 
 # Leverage one score 
