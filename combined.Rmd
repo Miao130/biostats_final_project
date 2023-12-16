@@ -1421,20 +1421,20 @@ Notice how `practice_sport` and `transport_means` are not selected in any of the
 
 ### Method from the lecture codes
 ```{r}
-math_models_report_df = cv_lecture_df |>
+math_caret_df = cv_lecture_df |>
   filter(subject == "math")
 
-math_models_report_df |>
+math_caret_df |>
   dplyr::select(method, MSE) |>
   knitr::kable()
 
-math_models_report_df = math_models_report_df |>
-  filter(MSE == min(math_models_report_df$MSE |> unlist()))
+math_caret_df = math_caret_df |>
+  filter(MSE == min(math_caret_df$MSE |> unlist()))
 
 # Only one value
-math_best_fit = math_models_report_df$model[[1]]
+math_best_fit = math_caret_df$model[[1]]
 ```
-The model with the best MSE for Math is `r paste(math_models_report_df$terms)`, which uses `r paste(math_models_report_df$method)` as a method of approach.
+The model with the best MSE for Math is `r paste(math_caret_df$terms)`, which uses `r paste(math_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
 ```{r}
@@ -1457,20 +1457,20 @@ We noticed that the the best model is the one that uses forward elimination with
 
 ### Method from the lecture codes
 ```{r}
-reading_models_report_df = cv_lecture_df |>
+reading_caret_df = cv_lecture_df |>
   filter(subject == "reading")
 
-reading_models_report_df |>
+reading_caret_df |>
   dplyr::select(method, MSE) |>
   knitr::kable()
 
-reading_models_report_df = reading_models_report_df |>
-  filter(MSE == min(reading_models_report_df$MSE |> unlist()))
+reading_caret_df = reading_caret_df |>
+  filter(MSE == min(reading_caret_df$MSE |> unlist()))
 
 # Only one value
-reading_best_fit = reading_models_report_df$model[[1]]
+reading_best_fit = reading_caret_df$model[[1]]
 ```
-The model with the best MSE for Reading is `r paste(reading_models_report_df$terms)`, which uses `r paste(reading_models_report_df$method)` as a method of approach.
+The model with the best MSE for Reading is `r paste(reading_caret_df$terms)`, which uses `r paste(reading_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
 ```{r}
@@ -1492,20 +1492,20 @@ We noticed that the the best model is the model that is picked by forward and ba
 ## Cross Validation - Writing
 ### Method from the lecture codes
 ```{r}
-writing_models_report_df = cv_lecture_df |>
+writing_caret_df = cv_lecture_df |>
   filter(subject == "writing")
 
-writing_models_report_df |>
+writing_caret_df |>
   dplyr::select(method, MSE) |>
   knitr::kable()
 
-writing_models_report_df = writing_models_report_df |>
-  filter(MSE == min(writing_models_report_df$MSE |> unlist()))
+writing_caret_df = writing_caret_df |>
+  filter(MSE == min(writing_caret_df$MSE |> unlist()))
 
 # Only one value
-writing_best_fit = writing_models_report_df$model[[1]]
+writing_best_fit = writing_caret_df$model[[1]]
 ```
-The model with the best MSE for Writing is `r paste(writing_models_report_df$terms)`, which uses `r paste(writing_models_report_df$method)` as a method of approach.
+The model with the best MSE for Writing is `r paste(writing_caret_df$terms)`, which uses `r paste(writing_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
 ```{r warning=TRUE}
@@ -1536,15 +1536,186 @@ We will take a logical approach to get the effect modification within the variab
 * `practice_sport` can affect the `wkly_study_hours` as the sports will take up chunks of time to study.
 
 The models that will be used in the effect modifier section are the models that are selected using `crossv_mc()` function, i.e.
+
 `r models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()`
 
 `r models_report_df |> filter(subject == "reading", method == "forward_func") |> pull(terms) |> paste()`
 
 `r models_report_df |> filter(subject == "writing", method == "forward_func") |> pull(terms) |> paste()`
 
+Here are the procedures for identifying effect modifiers and find confounders of the
+Here are all the possible effect interactions if we load in all of the predictors. 
 ```{r}
-
+lm(as.formula(str_c("math_score ~ ", paste(var_names, collapse = " * "))), data = step_df) |> 
+  anova() |> 
+  broom::tidy() |> 
+  filter(str_detect(term, ":")) |>
+  filter(p.value < 0.05) |>
+  knitr::kable(digits = 3, caption = "Math: Effect Modifiers")
 ```
+```{r}
+lm(as.formula(str_c("reading_score ~ ", paste(var_names, collapse = " * "))), data = step_df) |> 
+  anova() |> 
+  broom::tidy() |> 
+  filter(str_detect(term, ":")) |>
+  filter(p.value < 0.05) |>
+  knitr::kable(digits = 3, caption = "Reading: Effect Modifiers")
+```
+```{r}
+lm(as.formula(str_c("writing_score ~ ", paste(var_names, collapse = " * "))), data = step_df) |> 
+  anova() |> 
+  broom::tidy() |> 
+  filter(str_detect(term, ":")) |>
+  filter(p.value < 0.05) |>
+  knitr::kable(digits = 3, caption = "Writing: Effect Modifiers")
+```
+## Confounder
+```{r}
+# Math:
+lm(as.formula(math_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Math: Original")
+
+lm(as.formula(gsub("wkly_study_hours", "wkly_study_hours + practice_sport", math_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Math: Test if practice_sport is a confounder of wkly_study_hours")
+
+# Writing
+lm(as.formula(writing_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: Original")
+
+lm(as.formula(gsub("wkly_study_hours", "wkly_study_hours + practice_sport", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: Test if practice_sport is a confounder of wkly_study_hours")
+```
+We will include the interaction terms that involves two predictors and see how they affect the models that we have selected in the cross validation sections.
+
+```{r}
+corr(
+```
+## Confounding - Math
+```{r}
+# Writing
+lm(as.formula(writing_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: full under CV")
+
+lm(as.formula(gsub("gender", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Gender")
+
+lm(as.formula(gsub("lunch_type", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Lunch Type")
+
+lm(as.formula(gsub("test_prep", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Test Prep")
+
+lm(as.formula(gsub("\\+ parent_educ", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Parent Education")
+
+lm(as.formula(gsub("ethnic_group", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Ethnic Group")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Weekly Study Hours")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Weekly Study Hours")
+```
+
+```{r}
+lm(math_score ~ , data = step_df)|>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Weekly Study Hours")
+```
+
+
+## Confounding - Reading
+```{r}
+lm(as.formula(writing_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: full under CV")
+
+lm(as.formula(gsub("gender", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Gender")
+
+lm(as.formula(gsub("lunch_type", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Lunch Type")
+
+lm(as.formula(gsub("test_prep", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Test Prep")
+
+lm(as.formula(gsub("\\+ parent_educ", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Parent Education")
+
+lm(as.formula(gsub("ethnic_group", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Ethnic Group")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Weekly Study Hours")
+```
+
+
+## Confounding - Writing
+```{r}
+# Writing
+lm(as.formula(writing_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: full under CV")
+
+lm(as.formula(gsub("gender", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Gender")
+
+lm(as.formula(gsub("lunch_type", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Lunch Type")
+
+lm(as.formula(gsub("test_prep", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Test Prep")
+
+lm(as.formula(gsub("\\+ parent_educ", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Parent Education")
+
+lm(as.formula(gsub("ethnic_group", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Ethnic Group")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: without Weekly Study Hours")
+```
+We can see, removing `gender` will lower `wkly_study_hours` by `r abs(1.176-0.924)/1.176`, removing `test_prep` will lower `wkly_study_hours` by `r abs(1.176-1.792)/1.176`, and removing `parent_educ` will lower `wkly_study_hours` by `r abs(1.176-0.991)/1.176`.
+
+Hence, `gender`, `test_prep`, `parent_educ` could be protential confounder for 
+
+```{r}
+abs(1.176-0.924)/1.176
+abs(1.176-1.792)/1.176
+abs(1.176-0.991)/1.176
+```
+
+```{r}
+lm(writing_score ~ gender * test_prep * wkly_study_hours * parent_educ + ethnic_group + lunch_type, data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(digits = 3, caption = "Writing: with Number of Siblings")
+```
+
 
 
 
