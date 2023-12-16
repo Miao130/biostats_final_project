@@ -1836,7 +1836,81 @@ lm(writing_score ~ gender * test_prep * wkly_study_hours * parent_educ + ethnic_
 
 # Leverage one score 
 
-Since according to the corr plot, there are strong collinearity between the scores. We can just add one score (reading_score for example) to another score's model (maths_score for example) and see if the resulting model is improved. 
+## Effect of adding Writing, Reading scores on Maths model 
 
+```{r}
+maths_enhance=lm(math_score~reading_score+writing_score+lunch_type+ethnic_group+test_prep+gender+parent_educ+wkly_study_hours+nr_siblings,data=df_num)
+mse_maths_enhance=mean((df_num$math_score-predict(maths_enhance,newdata=df_num))^2)
+mse_maths=mean((df_num$math_score-predict(math_forward_func_fit,newdata=df_num))^2)
+```
 
+## Effect of adding Maths, Writing scores on Reading model
 
+```{r}
+reading_enhance=lm(reading_score~math_score+writing_score+lunch_type+gender+test_prep+parent_educ+ethnic_group,data=df_num)
+mse_reading_enhance=mean((df_num$reading_score-predict(reading_enhance,newdata=df_num))^2)
+mse_reading=mean((df_num$reading_score-predict(reading_criteria_fit,newdata=df_num))^2)
+```
+
+## Effect of adding Maths, Reading scores on Writing model
+
+```{r}
+writing_enhance=lm(writing_score~reading_score+math_score+lunch_type+gender+test_prep+parent_educ+ethnic_group+wkly_study_hours,data=df_num)
+mse_writing_enhance=mean((df_num$writing_score-predict(writing_enhance,newdata=df_num))^2)
+mse_writing=mean((df_num$writing_score-predict(writing_forward_func_fit,newdata=df_num))^2)
+```
+
+## Combined table
+
+```{r}
+model_enhance=tibble(
+  model_name=c("maths_reading+writing","maths_original","reading_maths+writing","reading_original","writing_maths+reading","writing_original"),
+  MSE=c(mse_maths_enhance,mse_maths,mse_reading_enhance,mse_reading,mse_writing_enhance,mse_writing)
+)|>print()
+```
+
+We can see that the MSE all significantly decreased after adding other scores to fit one score's model, indicating that leveraging other scores to enhance one score's model is possible and successful. 
+
+## Test potential overfitting issue - maths example 
+
+```{r}
+# Split data into training and test sets
+set.seed(123)
+train_index = createDataPartition(df_num$math_score, p = 0.7, list = FALSE)
+train_data = df_num[train_index, ]
+test_data = df_num[-train_index, ]
+
+# Train the model on the training set
+maths_enhance = lm(math_score ~ reading_score + writing_score + lunch_type + ethnic_group + test_prep + gender + parent_educ + wkly_study_hours + nr_siblings, data = train_data)
+
+# Make predictions on the test set
+predictions = predict(maths_enhance, newdata = test_data)
+
+# Evaluate model performance on the test set (MSPE)
+mse_test = mean((test_data$math_score - predictions)^2)
+print(paste("MSE on Test Set:", mse_test))
+
+# Perform k-fold cross-validation (e.g., 5-fold)
+set.seed(123)
+folds = createFolds(df_num$math_score, k = 5, list = TRUE)
+
+mse_cv = numeric(length(folds))
+
+for (i in seq_along(folds)) {
+  train_indices = unlist(folds[-i])
+  test_indices = folds[[i]]
+
+  train_data_cv = df_num[train_indices, ]
+  test_data_cv = df_num[test_indices, ]
+
+  model_cv = lm(math_score ~ reading_score + writing_score + lunch_type + ethnic_group + test_prep + gender + parent_educ + wkly_study_hours + nr_siblings, data = train_data_cv)
+
+  predictions_cv = predict(model_cv, newdata = test_data_cv)
+  mse_cv[i] = mean((test_data_cv$math_score - predictions_cv)^2)
+}
+
+mean_mse_cv = mean(mse_cv)
+print(paste("Mean MSE across Folds:", mean_mse_cv))
+```
+
+The model performs as well on test set and also across folds. Adding other scores to one score's best fit model did enhance the model. 
