@@ -1546,6 +1546,7 @@ The models that will be used in the effect modifier section are the models that 
 Here are the procedures for identifying effect modifiers and find confounders of the
 Here are all the possible effect interactions if we load in all of the predictors. 
 
+
 ```{r}
 math_best_cv_terms = models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()
 reading_best_cv_terms = models_report_df |> filter(subject == "reading", method == "forward_func") |> pull(terms) |> paste()
@@ -1560,12 +1561,13 @@ lm(as.formula(gsub("\\+", "*", math_best_cv_terms)), data = step_df) |>
   knitr::kable(caption = "Math: Effect Modifiers")
 
 lm(as.formula(gsub("\\+", "*", math_best_cv_terms)), data = step_df) |> 
-  anova() |> 
+  anova() |>
   broom::tidy() |> 
   filter(str_detect(term, ":")) |>
   filter(p.value < 0.05) |>
   knitr::kable(caption = "Math: Effect Modifiers")
 ```
+
 ```{r}
 lm(as.formula(gsub("\\+", "*", reading_best_cv_terms)), data = step_df) |> 
   broom::tidy() |> 
@@ -1630,6 +1632,118 @@ lm(as.formula(gsub("\\+ wkly_study_hours", "", math_best_cv_terms)), data = step
 lm(as.formula(gsub("\\+ nr_siblings", "", math_best_cv_terms)), data = step_df) |>
   broom::tidy() |> 
   knitr::kable(caption = "math: without Number of Siblings")
+```
+## Confounder
+We will include the interaction terms that involves two predictors and see how they affect the models that we have selected in the cross validation sections.
+
+## Confounding - Math
+```{r}
+# Writing
+lm(as.formula(writing_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: full under CV")
+
+lm(as.formula(gsub("gender", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Gender")
+
+lm(as.formula(gsub("lunch_type", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Lunch Type")
+
+lm(as.formula(gsub("test_prep", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Test Prep")
+
+lm(as.formula(gsub("\\+ parent_educ", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Parent Education")
+
+lm(as.formula(gsub("ethnic_group", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Ethnic Group")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Weekly Study Hours")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Weekly Study Hours")
+```
+
+## Confounding - Reading
+```{r}
+lm(as.formula(writing_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: full under CV")
+
+lm(as.formula(gsub("gender", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Gender")
+
+lm(as.formula(gsub("lunch_type", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Lunch Type")
+
+lm(as.formula(gsub("test_prep", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Test Prep")
+
+lm(as.formula(gsub("\\+ parent_educ", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Parent Education")
+
+lm(as.formula(gsub("ethnic_group", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Ethnic Group")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Weekly Study Hours")
+```
+
+
+## Confounding - Writing
+```{r}
+# Writing
+lm(as.formula(writing_best_cv_terms), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: full under CV")
+
+lm(as.formula(gsub("gender", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Gender")
+
+lm(as.formula(gsub("lunch_type", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Lunch Type")
+
+lm(as.formula(gsub("test_prep", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Test Prep")
+
+lm(as.formula(gsub("\\+ parent_educ", "", writing_best_cv_terms)), data = step_df) |> #
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Parent Education")
+
+lm(as.formula(gsub("ethnic_group", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Ethnic Group")
+
+lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: without Weekly Study Hours")
+```
+We can see, removing `gender` will lower `wkly_study_hours` by `r abs(1.176-0.924)/1.176`, removing `test_prep` will lower `wkly_study_hours` by `r abs(1.176-1.792)/1.176`, and removing `parent_educ` will lower `wkly_study_hours` by `r abs(1.176-0.991)/1.176`.
+
+Hence, `gender`, `test_prep`, `parent_educ` could be protential confounder for 
+
+```{r}
+abs(1.176-0.924)/1.176
+abs(1.176-1.792)/1.176
+abs(1.176-0.991)/1.176
+
 ```
 `gender`, `test_prep` -> `wkly_study_hours`
 `test_prep` -> `nr_siblings`
@@ -1703,6 +1817,13 @@ abs(1.176-0.924)/1.176
 abs(1.176-1.792)/1.176
 abs(1.176-0.991)/1.176
 ```
+
+```{r}
+lm(writing_score ~ gender * test_prep * wkly_study_hours * parent_educ + ethnic_group + lunch_type, data = step_df) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: with Number of Siblings")
+```
+
 
 ```{r}
 lm(writing_score ~ gender * test_prep * wkly_study_hours * parent_educ + ethnic_group + lunch_type, data = step_df) |>
