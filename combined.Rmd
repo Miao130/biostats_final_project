@@ -133,107 +133,24 @@ results_num=df|>
 do.call(rbind, results_cat)|>
   rownames_to_column(var="variable")|>
   separate(variable,into=c("variable","category"),sep="\\.")|>
-  knitr::kable(caption="table 1")
+  knitr::kable()
 ```
 
 ## Numeric Variables
 ```{r,include=TRUE,echo=FALSE}
 do.call(rbind, results_num)|>
   rownames_to_column(var = "variable")|>
-  knitr::kable(caption="table 2")
+  knitr::kable()
 ```
 
-```{r,include=True,echo=FALSE}
-
-# qqplots of 3 scores
-qq_math=df|>
-  ggplot(aes(sample = math_score)) +
-  stat_qq() +
-  geom_qq_line()+
-  ggtitle("QQ Plot for maths score") +
-  xlab("Theoretical Quantiles") +
-  ylab("Sample Quantiles")
-
-qq_writing=df|>
-  ggplot(aes(sample = writing_score)) +
-  stat_qq() +
-  geom_qq_line()+
-  ggtitle("QQ Plot for writing score") +
-  xlab("Theoretical Quantiles") +
-  ylab("Sample Quantiles")
-
-qq_reading=df|>
-  ggplot(aes(sample = reading_score)) +
-  stat_qq() +
-  geom_qq_line()+
-  ggtitle("QQ Plot for reading score") +
-  xlab("Theoretical Quantiles") +
-  ylab("Sample Quantiles")
-
-(qq_math+qq_reading)/qq_writing
-```
-
-```{r}
-# distribution for 3 scores
-
-maths_hist=df|>
-  dplyr::select(math_score)|>
-  ggplot(aes(x=(math_score)))+
-  geom_histogram()+
-  labs(
-    x="Maths Score",
-    y="Count"
-  )
-
-maths_box=df|>
-  dplyr::select(math_score)|>
-  ggplot(aes(x=(math_score)))+
-  geom_boxplot()+
-  labs(
-    x="Maths Score"
-  )
-
-reading_hist=df|>
-  dplyr::select(reading_score)|>
-  ggplot(aes(x=(reading_score)))+
-  geom_histogram()+
-  labs(
-    x="Reading Score",
-    y="Count"
-  )
-
-reading_box=df|>
-  dplyr::select(reading_score)|>
-  ggplot(aes(x=(reading_score)))+
-  geom_boxplot()+
-  labs(
-    x="Reading Score"
-  )
-
-writing_hist=df|>
-  dplyr::select(writing_score)|>
-  ggplot(aes(x=(writing_score)))+
-  geom_histogram()+
-  labs(
-    x="Writing Score",
-    y="Count"
-  )
-
-writing_box=df|>
-  dplyr::select(writing_score)|>
-  ggplot(aes(x=(writing_score)))+
-  geom_boxplot()+
-  labs(
-    x="Writing Score"
-  )
-
-(maths_hist+maths_box)/(reading_hist+reading_box)/(writing_hist+writing_box)
-```
 
 
 ```{r}
-par(mfrow=c(2,3))
-barplot(table(df_transformed$math_score),main='maths score')
+png("normality_check.png", width = 1200, height = 800)
+par(mfrow=c(3,5))
+barplot(table(df_transformed$math_score), main='Maths Score')
+barplot(table(df_transformed$writing_score), main='Writing Score')
+barplot(table(df_transformed$reading_score), main='Reading Score')
 barplot(table(df_transformed$gender), main='Gender')
 barplot(table(df_transformed$ethnic_group), main='Ethnic Group')
 barplot(table(df_transformed$lunch_type), main='Lunch Type')
@@ -245,9 +162,10 @@ barplot(table(df_transformed$is_first_child), main='First Child')
 barplot(table(df_transformed$nr_siblings), main='Siblings')
 barplot(table(df_transformed$transport_means), main='Transport Means')
 barplot(table(df_transformed$wkly_study_hours), main='Weekly Study Hours')
-
+dev.off()
 ```
 
+# Test the transformation for outcome variables
 
 ```{r}
 # Log, Sqrt, and Inverse transformation of outcomes
@@ -264,7 +182,8 @@ df_eda=df|>
     sqWrite=sqrt(writing_score),
     inWrite=1/(writing_score),
   )
-par(mfrow=c(2,3))
+png("transformation_check.png", width = 1200, height = 800)
+par(mfrow=c(3,3))
 hist(df_eda$lgMath, main="Log(Maths Score)",xlab="Score")
 hist(df_eda$sqMath, main="sq(Maths Score)",xlab="Score")
 hist(df_eda$inMath, main="in(Maths Score)",xlab="Score")
@@ -274,16 +193,18 @@ hist(df_eda$inRead, main="in(Reading Score)",xlab="Score")
 hist(df_eda$lgWrite, main="Log(Writing Score)",xlab="Score")
 hist(df_eda$sqWrite, main="sq(Writing Score)",xlab="Score")
 hist(df_eda$inWrite, main="in(Writing Score)",xlab="Score")
-
+dev.off()
 ```
-
+No transformations improved the distribution. Original data were used. 
 
 By plotting our the pairwise correlation between variables, there is apparent linearity among the three scores. Other correlation coefficients are relatively small, indicating weak linear relationship between the variables. 
 
 ```{r,include=TRUE,echo=FALSE}
+png("correlation_plot.png", width = 800, height = 800)
 df_num|>
   cor()|>
   corrplot(type = "upper", diag = FALSE)
+dev.off()
 ```
 
 
@@ -1736,10 +1657,10 @@ mse_writing=mean((df_num$writing_score-predict(writing_forward_func_fit,newdata=
 ## Combined table
 
 ```{r}
-model_enhance=tibble(
+tibble(
   model_name=c("maths_reading+writing","maths_original","reading_maths+writing","reading_original","writing_maths+reading","writing_original"),
   MSE=c(mse_maths_enhance,mse_maths,mse_reading_enhance,mse_reading,mse_writing_enhance,mse_writing)
-)|>print()
+)|>knitr::kable()
 ```
 
 We can see that the MSE all significantly decreased after adding other scores to fit one score's model, indicating that leveraging other scores to enhance one score's model is possible and successful. 
