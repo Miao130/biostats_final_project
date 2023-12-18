@@ -65,3 +65,7 @@ To study whether it is possible to leverage one or two scores to improve the mod
   \includegraphics[width=0.5\textwidth]{table3.png}
   \caption{MSE of models after addition of other scores}
 \end{figure}
+
+# Contribution Summary
+
+All four team members contributed equally to the project. Miao conducted data exploration of the dataset, evaluation of leveraging scores to enhance selected best model, and drafting introduction as well as parts of the methods and disucssion sections. 
