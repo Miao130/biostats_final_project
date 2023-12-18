@@ -1318,8 +1318,9 @@ cv_lecture_df = models_report_df |>
                    trControl = train,
                    method = 'lm',
                    na.action = na.pass)),
-         model = map(model, \(i) i$finalModel),
-         MSE = map(model, \(i) mean(i$residuals^2)))
+         RMSE = map(model, \(i) i$results$RMSE),
+         model = map(model, \(i) i$finalModel)
+         )
 ```
 
 ## Method using crossv_mc
@@ -1337,8 +1338,8 @@ cv_ds_df =
   unnest_wider(fits, strict = TRUE, names_repair = "minimal") |>
   mutate(
     cv_model = map2(train, terms, \(df, i) lm(as.formula(i), data = df)),
-    cv_mse = map2(cv_model, test, \(mod, df) mean(mod$residuals^2)),
-    cv_mse = as.numeric(cv_mse),
+    cv_rmse = map2(cv_model, test, \(mod, df) rmse(mod,df)),
+    cv_rmse = as.numeric(cv_rmse),
     method = as.character(method)
   )
 ```
@@ -1354,17 +1355,17 @@ math_caret_df = cv_lecture_df |>
   filter(subject == "math")
 
 math_caret_df |>
-  dplyr::select(method, MSE) |>
+  dplyr::select(method, RMSE) |>
   knitr::kable()
 
 math_caret_df = math_caret_df |>
-  filter(MSE == min(math_caret_df$MSE |> unlist()))
+  filter(RMSE == min(math_caret_df$RMSE |> unlist()))
 
 # Only one value
 math_best_fit = math_caret_df$model[[1]]
 ```
 
-The model with the best MSE for Math is `r paste(math_caret_df$terms)`, which uses `r paste(math_caret_df$method)` as a method of approach.
+The model with the best RMSE for Math is `r paste(math_caret_df$terms)`, which uses `r paste(math_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
 
@@ -1372,7 +1373,7 @@ The model with the best MSE for Math is `r paste(math_caret_df$terms)`, which us
 cv_ds_df |> 
   filter(subject == "math") |> 
   group_by(method) |>
-  ggplot(aes(x = method, y = cv_mse)) +
+  ggplot(aes(x = method, y = cv_rmse)) +
   geom_violin()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
@@ -1380,7 +1381,7 @@ cv_ds_df |>
 cv_ds_df |> 
   filter(subject == "math") |> 
   group_by(method) |>
-  summarize(average_mse = mean(cv_mse)) |>
+  summarize(average_rmse = mean(cv_rmse)) |>
   knitr::kable()
 ```
 
@@ -1395,11 +1396,11 @@ reading_caret_df = cv_lecture_df |>
   filter(subject == "reading")
 
 reading_caret_df |>
-  dplyr::select(method, MSE) |>
+  dplyr::select(method, RMSE) |>
   knitr::kable()
 
 reading_caret_df = reading_caret_df |>
-  filter(MSE == min(reading_caret_df$MSE |> unlist()))
+  filter(RMSE == min(reading_caret_df$RMSE |> unlist()))
 
 # Only one value
 reading_best_fit = reading_caret_df$model[[1]]
@@ -1413,7 +1414,7 @@ The model with the best MSE for Reading is `r paste(reading_caret_df$terms)`, wh
 cv_ds_df |> 
   filter(subject == "reading") |> 
   group_by(method) |>
-  ggplot(aes(x = method, y = cv_mse)) +
+  ggplot(aes(x = method, y = cv_rmse)) +
   geom_violin()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
@@ -1421,7 +1422,7 @@ cv_ds_df |>
 cv_ds_df |> 
   filter(subject == "reading") |> 
   group_by(method) |>
-  summarize(average_mse = mean(cv_mse)) |>
+  summarize(average_rmse = mean(cv_rmse)) |>
   knitr::kable()
 ```
 
@@ -1436,17 +1437,17 @@ writing_caret_df = cv_lecture_df |>
   filter(subject == "writing")
 
 writing_caret_df |>
-  dplyr::select(method, MSE) |>
+  dplyr::select(method, RMSE) |>
   knitr::kable()
 
 writing_caret_df = writing_caret_df |>
-  filter(MSE == min(writing_caret_df$MSE |> unlist()))
+  filter(RMSE == min(writing_caret_df$RMSE |> unlist()))
 
 # Only one value
 writing_best_fit = writing_caret_df$model[[1]]
 ```
 
-The model with the best MSE for Writing is `r paste(writing_caret_df$terms)`, which uses `r paste(writing_caret_df$method)` as a method of approach.
+The model with the best RMSE for Writing is `r paste(writing_caret_df$terms)`, which uses `r paste(writing_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
 
@@ -1454,7 +1455,7 @@ The model with the best MSE for Writing is `r paste(writing_caret_df$terms)`, wh
 cv_ds_df |> 
   filter(subject == "writing") |> 
   group_by(method) |>
-  ggplot(aes(x = method, y = cv_mse)) +
+  ggplot(aes(x = method, y = cv_rmse)) +
   geom_violin()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
@@ -1462,7 +1463,7 @@ cv_ds_df |>
 cv_ds_df |> 
   filter(subject == "writing") |> 
   group_by(method) |>
-  summarize(average_mse = mean(cv_mse)) |>
+  summarize(average_rmse = mean(cv_rmse)) |>
   knitr::kable()
 ```
 

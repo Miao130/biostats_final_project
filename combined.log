@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.12.18)  18 DEC 2023 15:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.12.18)  18 DEC 2023 16:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -668,27 +668,27 @@ Package pdftex.def Info: combined_files/figure-latex/unnamed-chunk-22-1.pdf  use
 <combined_files/figure-latex/unnamed-chunk-27-1.pdf, id=553, 469.755pt x 325.215pt>
 File: combined_files/figure-latex/unnamed-chunk-27-1.pdf Graphic file (type pdf)
 <use combined_files/figure-latex/unnamed-chunk-27-1.pdf>
-Package pdftex.def Info: combined_files/figure-latex/unnamed-chunk-27-1.pdf  used on input line 6228.
+Package pdftex.def Info: combined_files/figure-latex/unnamed-chunk-27-1.pdf  used on input line 6226.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [107 <./combined_files/figure-latex/unnamed-chunk-27-1.pdf>]
 <combined_files/figure-latex/unnamed-chunk-30-1.pdf, id=572, 469.755pt x 325.215pt>
 File: combined_files/figure-latex/unnamed-chunk-30-1.pdf Graphic file (type pdf)
 <use combined_files/figure-latex/unnamed-chunk-30-1.pdf>
-Package pdftex.def Info: combined_files/figure-latex/unnamed-chunk-30-1.pdf  used on input line 6289.
+Package pdftex.def Info: combined_files/figure-latex/unnamed-chunk-30-1.pdf  used on input line 6285.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [108] [109 <./combined_files/figure-latex/unnamed-chunk-30-1.pdf>]
 <combined_files/figure-latex/unnamed-chunk-33-1.pdf, id=597, 469.755pt x 325.215pt>
 File: combined_files/figure-latex/unnamed-chunk-33-1.pdf Graphic file (type pdf)
 <use combined_files/figure-latex/unnamed-chunk-33-1.pdf>
-Package pdftex.def Info: combined_files/figure-latex/unnamed-chunk-33-1.pdf  used on input line 6349.
+Package pdftex.def Info: combined_files/figure-latex/unnamed-chunk-33-1.pdf  used on input line 6343.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[110 <./combined_files/figure-latex/unnamed-chunk-33-1.pdf>]
-Underfull \hbox (badness 2512) in paragraph at lines 6390--6394
+
+Underfull \hbox (badness 2512) in paragraph at lines 6384--6388
 []\T1/lmr/m/n/10 If the per-son prac-tice sports(\T1/lmtt/m/n/10 practice_sport\T1/lmr/m/n/10 , then they are less likely to take the bus
  []
 
-
-Overfull \hbox (19.07855pt too wide) in paragraph at lines 6437--6452
+[110 <./combined_files/figure-latex/unnamed-chunk-33-1.pdf>]
+Overfull \hbox (19.07855pt too wide) in paragraph at lines 6431--6446
  [][] 
  []
 
@@ -704,13 +704,13 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  13163 strings out of 476135
  206639 string characters out of 5793755
- 1977457 words of memory out of 5000000
+ 1980457 words of memory out of 5000000
  34722 multiletter control sequences out of 15000+600000
  605212 words of font info for 79 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  89i,11n,93p,726b,589s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/allisonxia/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/allisonxia/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/allisonxia/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/allisonxia/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/allisonxia/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></Users/allisonxia/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on combined.pdf (118 pages, 478949 bytes).
+Output written on combined.pdf (118 pages, 478476 bytes).
 PDF statistics:
  938 PDF objects out of 1000 (max. 8388607)
  778 compressed objects within 8 object streams
