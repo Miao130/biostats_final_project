@@ -5,7 +5,6 @@ date: "2023-12-07"
 output: pdf_document
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, message=FALSE,warning=FALSE)
 library(tidyverse)
@@ -25,7 +24,7 @@ library(modelr)
 library(mgcv)
 ```
 
-# summary statistics 
+# summary statistics
 
 ```{r}
 # read datafile
@@ -75,7 +74,6 @@ df_num=df|>
                               levels = c("< 5", "5-10", "> 10")))
   )
 ```
-
 
 ```{r, include=FALSE}
 # categorical
@@ -129,6 +127,7 @@ results_num=df|>
 ```
 
 ## Categorical Variables
+
 ```{r,include=TRUE,echo=FALSE}
 do.call(rbind, results_cat)|>
   rownames_to_column(var="variable")|>
@@ -137,13 +136,12 @@ do.call(rbind, results_cat)|>
 ```
 
 ## Numeric Variables
+
 ```{r,include=TRUE,echo=FALSE}
 do.call(rbind, results_num)|>
   rownames_to_column(var = "variable")|>
   knitr::kable()
 ```
-
-
 
 ```{r}
 png("normality_check.png", width = 1200, height = 800)
@@ -195,9 +193,10 @@ hist(df_eda$sqWrite, main="sq(Writing Score)",xlab="Score")
 hist(df_eda$inWrite, main="in(Writing Score)",xlab="Score")
 dev.off()
 ```
-No transformations improved the distribution. Original data were used. 
 
-By plotting our the pairwise correlation between variables, there is apparent linearity among the three scores. Other correlation coefficients are relatively small, indicating weak linear relationship between the variables. 
+No transformations improved the distribution. Original data were used.
+
+By plotting our the pairwise correlation between variables, there is apparent linearity among the three scores. Other correlation coefficients are relatively small, indicating weak linear relationship between the variables.
 
 ```{r,include=TRUE,echo=FALSE}
 png("correlation_plot.png", width = 800, height = 800)
@@ -206,7 +205,6 @@ df_num|>
   corrplot(type = "upper", diag = FALSE)
 dev.off()
 ```
-
 
 # MLR lm()
 
@@ -219,103 +217,122 @@ model_write <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_ty
 
 ```
 
-
 ## MLR - Math
+
 ```{r math}
 summary(model_math)
 ```
 
 ### Coefficients and Significance Levels:
-* Intercept (44.1006): The expected value of math_score when all other predictors are at their reference level or zero.
-* gendermale (5.0855, p < 0.001): Being male is associated with an average increase of 5.0855 points in math_score compared to females, holding all else constant. This is statistically significant.
-* ethnic_group: Only ethnic_groupgroup E (11.1752, p < 0.001) is significant, suggesting students in this group score higher in math compared to the reference group.
-* parent_educ: The associate's degree (4.9058, p = 0.00584), bachelor's degree (6.6652, p = 0.00140), and master's degree (6.8096, p = 0.00760) are significant and associated with higher math scores compared to the reference category.
-* lunch_typestandard (12.3539, p < 0.001): Students with standard lunch type score significantly higher.
-* test_prepnone (-4.7717, p < 0.001): Not participating in test preparation is associated with lower math scores.
-* parent_marital_status: Married (5.4805, p = 0.00075) and Widowed (7.7944, p = 0.04134) are associated with higher scores.
-* practice_sport: Not significant.
-* is_first_childyes: Not significant.
-* nr_siblings (0.7403, p = 0.05461): A borderline significant positive association with math scores.
-* transport_meansschool_bus: Not significant.
-* wkly_study_hours: Studying 5-10 hours (3.5394, p = 0.00863) shows a significant positive effect.
+
+-   Intercept (44.1006): The expected value of math_score when all other predictors are at their reference level or zero.
+-   gendermale (5.0855, p \< 0.001): Being male is associated with an average increase of 5.0855 points in math_score compared to females, holding all else constant. This is statistically significant.
+-   ethnic_group: Only ethnic_groupgroup E (11.1752, p \< 0.001) is significant, suggesting students in this group score higher in math compared to the reference group.
+-   parent_educ: The associate's degree (4.9058, p = 0.00584), bachelor's degree (6.6652, p = 0.00140), and master's degree (6.8096, p = 0.00760) are significant and associated with higher math scores compared to the reference category.
+-   lunch_typestandard (12.3539, p \< 0.001): Students with standard lunch type score significantly higher.
+-   test_prepnone (-4.7717, p \< 0.001): Not participating in test preparation is associated with lower math scores.
+-   parent_marital_status: Married (5.4805, p = 0.00075) and Widowed (7.7944, p = 0.04134) are associated with higher scores.
+-   practice_sport: Not significant.
+-   is_first_childyes: Not significant.
+-   nr_siblings (0.7403, p = 0.05461): A borderline significant positive association with math scores.
+-   transport_meansschool_bus: Not significant.
+-   wkly_study_hours: Studying 5-10 hours (3.5394, p = 0.00863) shows a significant positive effect.
 
 ### Residuals:
+
 The spread of residuals suggests the errors are somewhat symmetrically distributed around the predicted values, which is a good sign for linear regression assumptions.
 
 ### Model Fit:
+
 Residual Standard Error (13.52): Indicates the average difference between the observed values and the values predicted by the model.
 
 ### R-squared:
-* Multiple R-squared (0.3221): About 32.21% of the variability in math_score is explained by the model.
-* Adjusted R-squared (0.2956): Adjusts the R-squared for the number of predictors, a better measure for models with multiple predictors.
+
+-   Multiple R-squared (0.3221): About 32.21% of the variability in math_score is explained by the model.
+-   Adjusted R-squared (0.2956): Adjusts the R-squared for the number of predictors, a better measure for models with multiple predictors.
 
 ### Statistic & p-value
-F-statistic (12.18) and p-value (< 2.2e-16): The model is statistically significant, meaning it performs better than a model with no predictors.
+
+F-statistic (12.18) and p-value (\< 2.2e-16): The model is statistically significant, meaning it performs better than a model with no predictors.
 
 ## MLR - reading
+
 ```{r}
 summary(model_read)
 ```
+
 ### Coefficients and Significance Levels:
-* **Intercept (60.8028)**: The expected value of `reading_score` when all other predictors are at their reference level or zero.
-* **gendermale (-7.6725, p < 0.001)**: Being male is associated with an average decrease of 7.6725 points in `reading_score` compared to females, holding all else constant. This is statistically significant.
-* **ethnic_group**: Only `ethnic_groupgroup E` (5.9165, p = 0.013402) is significant, suggesting students in this group score higher in reading compared to the reference group.
-* **parent_educ**: The `associate's degree` (4.7948, p = 0.005776), `bachelor's degree` (7.3496, p = 0.000313), and `master's degree` (8.7149, p = 0.000479) are significant and associated with higher reading scores compared to the reference category.
-* **lunch_typestandard (8.4374, p < 0.001)**: Students with standard lunch type score significantly higher.
-* **test_prepnone (-6.2822, p < 0.001)**: Not participating in test preparation is associated with lower reading scores.
-* **parent_marital_statusmarried (5.2439, p = 0.000950)**: Children of married parents score higher.
-* **practice_sport**: Not significant.
-* **is_first_childyes**: Not significant.
-* **nr_siblings (0.3882, p = 0.301309)**: No significant association with reading scores.
-* **transport_meansschool_bus**: Not significant.
-* **wkly_study_hours**: Studying 5-10 hours (2.6835, p = 0.041104) shows a significant positive effect.
+
+-   **Intercept (60.8028)**: The expected value of `reading_score` when all other predictors are at their reference level or zero.
+-   **gendermale (-7.6725, p \< 0.001)**: Being male is associated with an average decrease of 7.6725 points in `reading_score` compared to females, holding all else constant. This is statistically significant.
+-   **ethnic_group**: Only `ethnic_groupgroup E` (5.9165, p = 0.013402) is significant, suggesting students in this group score higher in reading compared to the reference group.
+-   **parent_educ**: The `associate's degree` (4.7948, p = 0.005776), `bachelor's degree` (7.3496, p = 0.000313), and `master's degree` (8.7149, p = 0.000479) are significant and associated with higher reading scores compared to the reference category.
+-   **lunch_typestandard (8.4374, p \< 0.001)**: Students with standard lunch type score significantly higher.
+-   **test_prepnone (-6.2822, p \< 0.001)**: Not participating in test preparation is associated with lower reading scores.
+-   **parent_marital_statusmarried (5.2439, p = 0.000950)**: Children of married parents score higher.
+-   **practice_sport**: Not significant.
+-   **is_first_childyes**: Not significant.
+-   **nr_siblings (0.3882, p = 0.301309)**: No significant association with reading scores.
+-   **transport_meansschool_bus**: Not significant.
+-   **wkly_study_hours**: Studying 5-10 hours (2.6835, p = 0.041104) shows a significant positive effect.
 
 ### Residuals:
+
 The spread of residuals suggests the errors are somewhat symmetrically distributed around the predicted values, which is a good sign for linear regression assumptions.
 
 ### Model Fit:
-* **Residual Standard Error (13.2)**: Indicates the average difference between the observed values and the values predicted by the model.
+
+-   **Residual Standard Error (13.2)**: Indicates the average difference between the observed values and the values predicted by the model.
 
 ### R-squared:
-* **Multiple R-squared (0.2709)**: About 27.09% of the variability in `reading_score` is explained by the model.
-* **Adjusted R-squared (0.2425)**: Adjusts the R-squared for the number of predictors, a better measure for models with multiple predictors.
+
+-   **Multiple R-squared (0.2709)**: About 27.09% of the variability in `reading_score` is explained by the model.
+-   **Adjusted R-squared (0.2425)**: Adjusts the R-squared for the number of predictors, a better measure for models with multiple predictors.
 
 ### Statistic & p-value
-* **F-statistic (9.527)** and **p-value (< 2.2e-16)**: The model is statistically significant, meaning it performs better than a model with no predictors.
+
+-   **F-statistic (9.527)** and **p-value (\< 2.2e-16)**: The model is statistically significant, meaning it performs better than a model with no predictors.
 
 ## MLR - writing
+
 ```{r}
 summary(model_write) 
 ```
+
 ### Coefficients and Significance Levels:
-* **Intercept (57.808758)**: The expected value of `writing_score` when all other predictors are at their reference level or zero.
-* **gendermale (-9.268845, p < 0.001)**: Being male is associated with an average decrease of 9.268845 points in `writing_score` compared to females, holding all else constant. This is statistically significant.
-* **ethnic_group**: `ethnic_groupgroup D` (5.010576, p = 0.016531) and `ethnic_groupgroup E` (6.018419, p = 0.008673) are significant, suggesting students in these groups score higher in writing compared to the reference group.
-* **parent_educ**: `associate's degree` (6.130783, p = 0.000239), `some college` (4.338798, p = 0.010898), `bachelor's degree` (9.217680, p = 2.62e-06), and `master's degree` (11.712279, p = 1.10e-06) are significant and associated with higher writing scores compared to the reference category.
-* **lunch_typestandard (9.390698, p < 0.001)**: Students with standard lunch type score significantly higher.
-* **test_prepnone (-8.754351, p < 0.001)**: Not participating in test preparation is associated with lower writing scores.
-* **parent_marital_statusmarried (5.246610, p = 0.000561)**: Children of married parents score higher.
-* **practice_sport**: Not significant.
-* **is_first_childyes**: Not significant.
-* **nr_siblings (0.546033, p = 0.129340)**: No significant association with writing scores.
-* **transport_meansschool_bus**: Not significant.
-* **wkly_study_hours**: Studying 5-10 hours (2.802323, p = 0.026048) shows a significant positive effect.
+
+-   **Intercept (57.808758)**: The expected value of `writing_score` when all other predictors are at their reference level or zero.
+-   **gendermale (-9.268845, p \< 0.001)**: Being male is associated with an average decrease of 9.268845 points in `writing_score` compared to females, holding all else constant. This is statistically significant.
+-   **ethnic_group**: `ethnic_groupgroup D` (5.010576, p = 0.016531) and `ethnic_groupgroup E` (6.018419, p = 0.008673) are significant, suggesting students in these groups score higher in writing compared to the reference group.
+-   **parent_educ**: `associate's degree` (6.130783, p = 0.000239), `some college` (4.338798, p = 0.010898), `bachelor's degree` (9.217680, p = 2.62e-06), and `master's degree` (11.712279, p = 1.10e-06) are significant and associated with higher writing scores compared to the reference category.
+-   **lunch_typestandard (9.390698, p \< 0.001)**: Students with standard lunch type score significantly higher.
+-   **test_prepnone (-8.754351, p \< 0.001)**: Not participating in test preparation is associated with lower writing scores.
+-   **parent_marital_statusmarried (5.246610, p = 0.000561)**: Children of married parents score higher.
+-   **practice_sport**: Not significant.
+-   **is_first_childyes**: Not significant.
+-   **nr_siblings (0.546033, p = 0.129340)**: No significant association with writing scores.
+-   **transport_meansschool_bus**: Not significant.
+-   **wkly_study_hours**: Studying 5-10 hours (2.802323, p = 0.026048) shows a significant positive effect.
 
 ### Residuals:
+
 The spread of residuals suggests the errors are somewhat symmetrically distributed around the predicted values, which is a good sign for linear regression assumptions.
 
 ### Model Fit:
-* **Residual Standard Error (12.65)**: Indicates the average difference between the observed values and the values predicted by the model.
+
+-   **Residual Standard Error (12.65)**: Indicates the average difference between the observed values and the values predicted by the model.
 
 ### R-squared:
-* **Multiple R-squared (0.3634)**: About 36.34% of the variability in `writing_score` is explained by the model.
-* **Adjusted R-squared (0.3385)**: Adjusts the R-squared for the number of predictors, a better measure for models with multiple predictors.
+
+-   **Multiple R-squared (0.3634)**: About 36.34% of the variability in `writing_score` is explained by the model.
+-   **Adjusted R-squared (0.3385)**: Adjusts the R-squared for the number of predictors, a better measure for models with multiple predictors.
 
 ### Statistic & p-value
-* **F-statistic (14.63)** and **p-value (< 2.2e-16)**: The model is statistically significant, meaning it performs better than a model with no predictors.
 
+-   **F-statistic (14.63)** and **p-value (\< 2.2e-16)**: The model is statistically significant, meaning it performs better than a model with no predictors.
 
 ## Cleaned datasets - updated by Nisha
+
 ```{r}
 set.seed(555)
 
@@ -352,6 +369,7 @@ writing_df = dplyr::select(step_df, -c(reading_score, math_score))
 ## Step-wise: Backwards Elimination
 
 Math Score
+
 ```{r}
 mult.fit = lm(math_score ~ ., data = math_df)
 summary(mult.fit)
@@ -381,17 +399,13 @@ fin = summary(math_backward_manual_fit)
 math_backward_func_fit = step(mult.fit, direction='backward')
 one_fun_fin = summary(math_backward_func_fit)
 ```
-With manual elimination, the model we obtained was Math Score ~ Gender + Ethnic
-Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
 
-When using the single-function method, the model obtained with the lowest AIC
-was Math Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
-Test Prep + Number of Siblings + Weekly Study Hours. Both models' MSEs are 
-within 0.5 points of each other, while the single function had a lower MSE by
-about 1 point.
+With manual elimination, the model we obtained was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
 
+When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Number of Siblings + Weekly Study Hours. Both models' MSEs are within 0.5 points of each other, while the single function had a lower MSE by about 1 point.
 
 Reading Score
+
 ```{r}
 mult.fit = lm(reading_score ~ ., data = reading_df)
 summary(mult.fit)
@@ -425,15 +439,13 @@ fin
 reading_backward_func_fit = step(mult.fit, direction='backward')
 one_fun_fin = summary(reading_backward_func_fit)
 ```
-With manual elimination, the model we obtained was Reading Score ~ Gender + Ethnic
-Group + Parent Education + Lunch Type + Test Prep.
 
-When using the single-function method, the model obtained with the lowest AIC
-was Reading Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
-Test Prep. The one-function model had a lower MSE than the manually-calculated
-model by about 14 points and a higher R-sqaured value by about 10 points.
+With manual elimination, the model we obtained was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep.
+
+When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep. The one-function model had a lower MSE than the manually-calculated model by about 14 points and a higher R-sqaured value by about 10 points.
 
 Writing Score
+
 ```{r}
 mult.fit = lm(writing_score ~ ., data = writing_df)
 summary(mult.fit)
@@ -466,17 +478,15 @@ fin = summary(writing_backward_manual_fit)
 writing_backward_func_fit = step(mult.fit, direction='backward')
 one_fun_fin = summary(writing_backward_func_fit)
 ```
-With manual elimination, the model we obtained was Writing Score ~ Gender + Ethnic
-Group + Parent Education + Lunch Type + Test Prep.
 
-When using the single-function method, the model obtained with the lowest AIC
-was Writing Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
-Test Prep + Weekly Study Hours. Both models had equal R-squared values and MSEs 
-within 0.6 points of each other.
+With manual elimination, the model we obtained was Writing Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep.
+
+When using the single-function method, the model obtained with the lowest AIC was Writing Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours. Both models had equal R-squared values and MSEs within 0.6 points of each other.
 
 ## Step-wise: Forward Elimination
 
 Math Score
+
 ```{r}
 
 mult.fit = lm(math_score ~ ., data = math_df)
@@ -688,17 +698,13 @@ intercept_only <- lm (math_score ~ 1, data = math_df)
 math_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
 one_fun_fin = summary(math_forward_func_fit)
 ```
-The model we obtained is Math Score ~ Lunch Type + Ethnic Group + Test Prep +
-Gender + Parent Education + Weekly Study Hours.
 
-When using the single-function method, the model obtained with the lowest AIC
-was Math Score ~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent
-Education + Weekly Study Hours + Number of Siblings. This method resulted in a
-model that had a slightly lower MSE by a difference of about 1 point and
-approximately the same R-squared/Adjusted R-squared values.
+The model we obtained is Math Score \~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent Education + Weekly Study Hours.
 
+When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent Education + Weekly Study Hours + Number of Siblings. This method resulted in a model that had a slightly lower MSE by a difference of about 1 point and approximately the same R-squared/Adjusted R-squared values.
 
 Reading Score
+
 ```{r}
 mult.fit = lm(reading_score ~ ., data = reading_df)
 
@@ -891,14 +897,13 @@ reading_forward_func_fit = step(intercept_only, direction = "forward", scope = f
 one_fun_fin = summary(reading_forward_func_fit)
 
 ```
-The model we obtained is Reading Score ~ Lunch Type + Gender + Test Prep + 
-Parent Education + Ethnic Group.
 
-When using the single-function method, the model obtained with the lowest AIC
-was Reading Score ~ Lunch Type + Gender + Test Prep + Parent Education + 
-Ethnic Group. Both models at equal MSE and R-sqaured values.
+The model we obtained is Reading Score \~ Lunch Type + Gender + Test Prep + Parent Education + Ethnic Group.
+
+When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Lunch Type + Gender + Test Prep + Parent Education + Ethnic Group. Both models at equal MSE and R-sqaured values.
 
 Writing Score
+
 ```{r}
 mult.fit = lm(writing_score ~ ., data = writing_df)
 
@@ -1089,24 +1094,19 @@ intercept_only <- lm (writing_score ~ 1, data = writing_df)
 writing_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
 one_fun_fin = summary(writing_forward_func_fit)
 ```
-The model we obtained is Writing Score ~ Lunch Type + Ethnic Group + Test Prep +
-Gender + Parent Education + Weekly Study Hours.
 
-When using the single-function method, the model obtained with the lowest AIC
-was Writing Score ~ Gender + Lunch Type + Test Prep + Parent Education + Ethnic
-Group + Weekly Study Hours. Both models had R-squared values and MSEs within 0.6
-points of each other.
+The model we obtained is Writing Score \~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent Education + Weekly Study Hours.
 
-It seems that when using the single-function method, for all scores and for both
-forwards and backwards elimination, extra variables were included despite their 
-individual p-values > 0.05; therefore the manually-selected models should be 
-used for comparison and validation.
+When using the single-function method, the model obtained with the lowest AIC was Writing Score \~ Gender + Lunch Type + Test Prep + Parent Education + Ethnic Group + Weekly Study Hours. Both models had R-squared values and MSEs within 0.6 points of each other.
 
-## Criteria-based approach - Adjusted R^2, Cp, BIC
-(Note: BIC has a larger penalty, leading to less predictors present within 
-the model.)
+It seems that when using the single-function method, for all scores and for both forwards and backwards elimination, extra variables were included despite their individual p-values \> 0.05; therefore the manually-selected models should be used for comparison and validation.
+
+## Criteria-based approach - Adjusted R\^2, Cp, BIC
+
+(Note: BIC has a larger penalty, leading to less predictors present within the model.)
 
 Math Score
+
 ```{r}
 # perform best subset selection
 best_subset <- regsubsets(math_score ~ ., math_df, nvmax = 11)
@@ -1126,10 +1126,11 @@ tibble(predictors = 1:11,
 results$which[7,]|>print()
 math_criteria_fit = lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type+ test_prep + nr_siblings, wkly_study_hours, data = step_df)
 ```
-To predict math score, the adjusted R^2 statistic, Cp, and BIC plots in combination show that a 7-variable model is optimal. 
-The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, nr_siblings, and wkly study_hours. 
+
+To predict math score, the adjusted R\^2 statistic, Cp, and BIC plots in combination show that a 7-variable model is optimal. The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, nr_siblings, and wkly study_hours.
 
 Reading Score
+
 ```{r}
 best_subset <- regsubsets(reading_score ~ ., reading_df, nvmax = 11)
 results <- summary(best_subset)
@@ -1147,10 +1148,11 @@ tibble(predictors = 1:11,
 results$which[5,]|>print()
 reading_criteria_fit = lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type+ test_prep, data = step_df)
 ```
-To predict reading score, the adjusted R^2 statistic and Cp and BIC plots shows that a 5-variable model is optimal. 
-The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep. 
+
+To predict reading score, the adjusted R\^2 statistic and Cp and BIC plots shows that a 5-variable model is optimal. The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep.
 
 Writing Score
+
 ```{r}
 best_subset <- regsubsets(writing_score ~ ., writing_df, nvmax = 11)
 results <- summary(best_subset)
@@ -1168,14 +1170,16 @@ tibble(predictors = 1:11,
 results$which[5,] |>print()
 writing_criteria_fit = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep, data = step_df)
 ```
-To predict writing score, the adjusted R^2, Cp, and BIC statistics show that a 5-variable model is optimal. \
+
+To predict writing score, the adjusted R\^2, Cp, and BIC statistics show that a 5-variable model is optimal.\
 The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep
 
 Limitation: noting that the plots maximum and minimum are not that obvious.
 
-## LASSO approach - 
+## LASSO approach -
 
 Maths score:
+
 ```{r}
 # Find the best lambda
 math_lasso=step_df|>
@@ -1239,7 +1243,9 @@ coef(write_model_lasso)
 ```
 
 # Cross Validation
+
 Here are the summary of all the models that have been created in this project.
+
 ```{r}
 # Clean out the variables used in stepwise analysis
 var_names = step_df |> dplyr::select(!ends_with("score"))  |> colnames()
@@ -1299,6 +1305,7 @@ kable_styling("striped", full_width = F) %>%
 We will be performing cross validation to select the best model resulted from the models above.
 
 ## Method from the lecture code
+
 ```{r}
 set.seed(1)
 # Use 5-fold validation and create the training sets
@@ -1316,6 +1323,7 @@ cv_lecture_df = models_report_df |>
 ```
 
 ## Method using crossv_mc
+
 ```{r warning=TRUE}
 set.seed(1)
 cv_ds_df = 
@@ -1329,16 +1337,18 @@ cv_ds_df =
   unnest_wider(fits, strict = TRUE, names_repair = "minimal") |>
   mutate(
     cv_model = map2(train, terms, \(df, i) lm(as.formula(i), data = df)),
-    cv_mse = map2(cv_model, test, \(mod, df) mse(model = mod, data = df)),
+    cv_mse = map2(cv_model, test, \(mod, df) mean(mod$residuals^2)),
     cv_mse = as.numeric(cv_mse),
     method = as.character(method)
   )
 ```
+
 Notice how `practice_sport` and `transport_means` are not selected in any of the model selections methods. This will be reported at the effect modifier section.
 
 ## Cross Validation - Math
 
 ### Method from the lecture codes
+
 ```{r}
 math_caret_df = cv_lecture_df |>
   filter(subject == "math")
@@ -1353,9 +1363,11 @@ math_caret_df = math_caret_df |>
 # Only one value
 math_best_fit = math_caret_df$model[[1]]
 ```
+
 The model with the best MSE for Math is `r paste(math_caret_df$terms)`, which uses `r paste(math_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
+
 ```{r}
 cv_ds_df |> 
   filter(subject == "math") |> 
@@ -1363,6 +1375,7 @@ cv_ds_df |>
   ggplot(aes(x = method, y = cv_mse)) +
   geom_violin()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
+
 ```{r}
 cv_ds_df |> 
   filter(subject == "math") |> 
@@ -1370,11 +1383,13 @@ cv_ds_df |>
   summarize(average_mse = mean(cv_mse)) |>
   knitr::kable()
 ```
+
 We noticed that the the best model is the one that uses forward elimination with one line code and backward elimination with one line code. The model is `r models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()`
 
 ## Cross Validation - Reading
 
 ### Method from the lecture codes
+
 ```{r}
 reading_caret_df = cv_lecture_df |>
   filter(subject == "reading")
@@ -1389,9 +1404,11 @@ reading_caret_df = reading_caret_df |>
 # Only one value
 reading_best_fit = reading_caret_df$model[[1]]
 ```
+
 The model with the best MSE for Reading is `r paste(reading_caret_df$terms)`, which uses `r paste(reading_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
+
 ```{r}
 cv_ds_df |> 
   filter(subject == "reading") |> 
@@ -1399,6 +1416,7 @@ cv_ds_df |>
   ggplot(aes(x = method, y = cv_mse)) +
   geom_violin()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
+
 ```{r}
 cv_ds_df |> 
   filter(subject == "reading") |> 
@@ -1406,10 +1424,13 @@ cv_ds_df |>
   summarize(average_mse = mean(cv_mse)) |>
   knitr::kable()
 ```
+
 We noticed that the the best model is the model that is picked by forward and backward elimination method and criterion based approach. The model is `r models_report_df |> filter(subject == "reading", method == "forward_func") |> pull(terms) |> paste()`
 
 ## Cross Validation - Writing
+
 ### Method from the lecture codes
+
 ```{r}
 writing_caret_df = cv_lecture_df |>
   filter(subject == "writing")
@@ -1424,9 +1445,11 @@ writing_caret_df = writing_caret_df |>
 # Only one value
 writing_best_fit = writing_caret_df$model[[1]]
 ```
+
 The model with the best MSE for Writing is `r paste(writing_caret_df$terms)`, which uses `r paste(writing_caret_df$method)` as a method of approach.
 
 ### Method using crossv_mc
+
 ```{r warning=TRUE}
 cv_ds_df |> 
   filter(subject == "writing") |> 
@@ -1434,6 +1457,7 @@ cv_ds_df |>
   ggplot(aes(x = method, y = cv_mse)) +
   geom_violin()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
+
 ```{r}
 cv_ds_df |> 
   filter(subject == "writing") |> 
@@ -1441,18 +1465,20 @@ cv_ds_df |>
   summarize(average_mse = mean(cv_mse)) |>
   knitr::kable()
 ```
+
 We noticed that the the best model is the one that uses forward elimination with one line code and backward elimination with one line code. The model is `r models_report_df |> filter(subject == "writing", method == "forward_func") |> pull(terms) |> paste()`
 
 # Effect Modifier
-We will take a logical approach to get the effect modification within the variables. 
 
-* The variables provided to measure the scores are `r step_df |> dplyr::select(-ends_with("score")) |> colnames() |> paste(sep = ',')`. `is_first_child` and the `nr_siblings` can be related since if the person have no siblings, then the probability that they are the first child is 1. 
+We will take a logical approach to get the effect modification within the variables.
 
-* If the person practice sports(`practice_sport`, then they are less likely to take the bus (`transport_means`) back to their location. 
+-   The variables provided to measure the scores are `r step_df |> dplyr::select(-ends_with("score")) |> colnames() |> paste(sep = ',')`. `is_first_child` and the `nr_siblings` can be related since if the person have no siblings, then the probability that they are the first child is 1.
 
-* `gender`, `ethnic_group`, `parent_educ`, `parent_marital_status`, `transport_means` can all affect the person's family financial background. This can be reflected directly with `lunch_type`. We will only evaluate the effect of `gender`, `ethnic_group` on `lunch_type`.
+-   If the person practice sports(`practice_sport`, then they are less likely to take the bus (`transport_means`) back to their location.
 
-* `practice_sport` can affect the `wkly_study_hours` as the sports will take up chunks of time to study.
+-   `gender`, `ethnic_group`, `parent_educ`, `parent_marital_status`, `transport_means` can all affect the person's family financial background. This can be reflected directly with `lunch_type`. We will only evaluate the effect of `gender`, `ethnic_group` on `lunch_type`.
+
+-   `practice_sport` can affect the `wkly_study_hours` as the sports will take up chunks of time to study.
 
 The models that will be used in the effect modifier section are the models that are selected using `crossv_mc()` function, i.e.
 
@@ -1462,9 +1488,7 @@ The models that will be used in the effect modifier section are the models that 
 
 `r models_report_df |> filter(subject == "writing", method == "forward_func") |> pull(terms) |> paste()`
 
-Here are the procedures for identifying effect modifiers and find confounders of the
-Here are all the possible effect interactions if we load in all of the predictors. 
-
+Here are the procedures for identifying effect modifiers and find confounders of the Here are all the possible effect interactions if we load in all of the predictors.
 
 ```{r}
 math_best_cv_terms = models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()
@@ -1501,6 +1525,7 @@ lm(as.formula(gsub("\\+", "*", reading_best_cv_terms)), data = step_df) |>
   filter(p.value < 0.05) |>
   knitr::kable(caption = "Reading: Effect Modifiers")
 ```
+
 ```{r}
 lm(as.formula(gsub("\\+", "*", writing_best_cv_terms)), data = step_df) |> 
   broom::tidy() |> 
@@ -1515,9 +1540,11 @@ lm(as.formula(gsub("\\+", "*", writing_best_cv_terms)), data = step_df) |>
   filter(p.value < 0.05) |>
   knitr::kable(caption = "Writing: Effect Modifiers")
 ```
+
 ## Confounder
 
 ## Confounding - Math
+
 ```{r}
 # math
 lm(as.formula(math_best_cv_terms), data = step_df) |>
@@ -1552,11 +1579,11 @@ lm(as.formula(gsub("\\+ nr_siblings", "", math_best_cv_terms)), data = step_df) 
   broom::tidy() |> 
   knitr::kable(caption = "math: without Number of Siblings")
 ```
-`gender`, `test_prep` -> `wkly_study_hours`
-`test_prep` -> `nr_siblings`
 
+`gender`, `test_prep` -\> `wkly_study_hours` `test_prep` -\> `nr_siblings`
 
 ## Confounding - Reading
+
 ```{r}
 lm(as.formula(reading_best_cv_terms), data = step_df) |>
   broom::tidy() |> 
@@ -1582,9 +1609,11 @@ lm(as.formula(gsub("\\+ ethnic_group", "", reading_best_cv_terms)), data = step_
   broom::tidy() |> 
   knitr::kable(caption = "reading: without Ethnic Group")
 ```
+
 We don't have any confounders for reading score
 
 ## Confounding - Writing
+
 ```{r}
 # Writing
 lm(as.formula(writing_best_cv_terms), data = step_df) |>
@@ -1615,6 +1644,7 @@ lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = s
   broom::tidy() |> 
   knitr::kable(caption = "Writing: without Weekly Study Hours")
 ```
+
 We can see, removing `gender` will lower `wkly_study_hours` by `r abs(1.176-0.924)/1.176`, removing `test_prep` will lower `wkly_study_hours` by `r abs(1.176-1.792)/1.176`, and removing `parent_educ` will lower `wkly_study_hours` by `r abs(1.176-0.991)/1.176`.
 
 Hence, `gender`, `test_prep`, `parent_educ` could be potential confounder for `wkly_study_hours`
@@ -1625,12 +1655,9 @@ abs(1.176-1.792)/1.176
 abs(1.176-0.991)/1.176
 ```
 
+# Leverage one score
 
-
-
-# Leverage one score 
-
-## Effect of adding Writing, Reading scores on Maths model 
+## Effect of adding Writing, Reading scores on Maths model
 
 ```{r}
 maths_enhance=lm(math_score~reading_score+writing_score+lunch_type+ethnic_group+test_prep+gender+parent_educ+wkly_study_hours+nr_siblings,data=df_num)
@@ -1663,9 +1690,9 @@ tibble(
 )|>knitr::kable()
 ```
 
-We can see that the MSE all significantly decreased after adding other scores to fit one score's model, indicating that leveraging other scores to enhance one score's model is possible and successful. 
+We can see that the MSE all significantly decreased after adding other scores to fit one score's model, indicating that leveraging other scores to enhance one score's model is possible and successful.
 
-## Test potential overfitting issue - maths example 
+## Test potential overfitting issue - maths example
 
 ```{r}
 # Split data into training and test sets
@@ -1707,4 +1734,4 @@ mean_mse_cv = mean(mse_cv)
 print(paste("Mean MSE across Folds:", mean_mse_cv))
 ```
 
-The model performs as well on test set and also across folds. Adding other scores to one score's best fit model did enhance the model. 
+The model performs as well on test set and also across folds. Adding other scores to one score's best fit model did enhance the model.
