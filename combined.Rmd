@@ -393,16 +393,19 @@ summary(step4)
 # No Number of Siblings
 math_backward_manual_fit = update(step4, . ~ . -nr_siblings)
 summary(math_backward_manual_fit)
-fin = summary(math_backward_manual_fit)
+mean(math_backward_manual_fit$residuals^2)
+
 
 # just use one function
 math_backward_func_fit = step(mult.fit, direction='backward')
-one_fun_fin = summary(math_backward_func_fit)
+summary(math_backward_func_fit)
+mean(math_backward_manual_fit$residuals^2)
+
 ```
 
 With manual elimination, the model we obtained was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
 
-When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Number of Siblings + Weekly Study Hours. Both models' adjusted R^2 are within 0.5 points of each other, while the single function had a lower MSE by about 1 point.
+When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Number of Siblings + Weekly Study Hours. Both models' MSE are equal to each other, while the manually derived model had alower adjusted R-squared value by ~ 0.3 units.
 
 Reading Score
 
@@ -432,22 +435,19 @@ summary(step5)
 
 # No Weekly Study Hours
 reading_backward_manual_fit = update(step5, . ~ . -wkly_study_hours)
-fin = summary(reading_backward_manual_fit)
-fin
+summary(reading_backward_manual_fit)
 mean(reading_backward_manual_fit$residuals^2)
 
 # just use one function
 reading_backward_func_fit = step(mult.fit, direction='backward')
-one_fun_fin = summary(reading_backward_func_fit)
-one_fun_fin
+summary(reading_backward_func_fit)
 mean(reading_backward_func_fit$residuals^2)
-
 
 ```
 
 With manual elimination, the model we obtained was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep.
 
-When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep. The one-function model had equal adjusted R^2 and MSE values.
+When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep. The one-function model had equal adjusted R-squared and MSE values.
 
 Writing Score
 
@@ -477,16 +477,20 @@ summary(step5)
 
 # No Weekly Study Hours
 writing_backward_manual_fit = update(step5, . ~ . -wkly_study_hours)
-fin = summary(writing_backward_manual_fit)
+summary(writing_backward_manual_fit)
+mean(writing_backward_manual_fit$residuals^2)
+
 
 # just use one function
 writing_backward_func_fit = step(mult.fit, direction='backward')
-one_fun_fin = summary(writing_backward_func_fit)
+summary(writing_backward_func_fit)
+mean(writing_backward_func_fit$residuals^2)
+
 ```
 
 With manual elimination, the model we obtained was Writing Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep.
 
-When using the single-function method, the model obtained with the lowest AIC was Writing Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours. Both models had equal R-squared values and MSEs within 0.6 points of each other.
+When using the single-function method, the model obtained with the lowest AIC was Writing Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours. Both models had equal adjusted R-squared values and MSEs within 0.6 points of each other.
 
 ## Step-wise: Forward Elimination
 
@@ -696,17 +700,21 @@ summary(fit5)
 
 math_forward_manual_fit = lm(math_score ~ lunch_type + ethnic_group + test_prep + 
     gender + parent_educ + wkly_study_hours, data = step_df)
-fin = summary(math_forward_manual_fit)
+summary(math_forward_manual_fit)
+mean(math_forward_manual_fit$residuals^2)
+
 
 # fit using one function
 intercept_only <- lm (math_score ~ 1, data = math_df)
 math_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
-one_fun_fin = summary(math_forward_func_fit)
+summary(math_forward_func_fit)
+mean(math_forward_func_fit$residuals^2)
+
 ```
 
 The model we obtained is Math Score \~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent Education + Weekly Study Hours.
 
-When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent Education + Weekly Study Hours + Number of Siblings. This method resulted in a model that had a slightly lower MSE by a difference of about 1 point and approximately the same R-squared/Adjusted R-squared values.
+When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent Education + Weekly Study Hours + Number of Siblings. This method resulted in a model that had a slightly lower MSE by a difference of about 1 point and approximately the same adjusted R-squared values (difference of < 0.3 units).
 
 Reading Score
 
@@ -894,18 +902,22 @@ summary(fit6)
 
 reading_forward_manual_fit = lm(reading_score ~ lunch_type + gender + test_prep + 
                       parent_educ + ethnic_group, data = step_df)
-fin = summary(reading_forward_manual_fit)
+summary(reading_forward_manual_fit)
+mean(reading_forward_manual_fit$residuals^2)
+
 
 # fit using one function
 intercept_only <- lm (reading_score ~ 1, data = reading_df)
 reading_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
-one_fun_fin = summary(reading_forward_func_fit)
+summary(reading_forward_func_fit)
+mean(reading_forward_func_fit$residuals^2)
+
 
 ```
 
 The model we obtained is Reading Score \~ Lunch Type + Gender + Test Prep + Parent Education + Ethnic Group.
 
-When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Lunch Type + Gender + Test Prep + Parent Education + Ethnic Group. Both models at equal MSE and R-sqaured values.
+When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Lunch Type + Gender + Test Prep + Parent Education + Ethnic Group. Both models have equal MSE and adjusted R-squared values.
 
 Writing Score
 
@@ -1092,17 +1104,21 @@ summary(fit6)
 
 writing_forward_manual_fit = lm(writing_score ~ gender + lunch_type + test_prep + 
                       parent_educ + ethnic_group, data = step_df)
-fin = summary(writing_forward_manual_fit)
+summary(writing_forward_manual_fit)
+mean(writing_forward_manual_fit$residuals^2)
+
 
 # fit using one function
 intercept_only <- lm (writing_score ~ 1, data = writing_df)
 writing_forward_func_fit = step(intercept_only, direction = "forward", scope = formula(mult.fit))
-one_fun_fin = summary(writing_forward_func_fit)
+summary(writing_forward_func_fit)
+mean(writing_forward_func_fit$residuals^2)
+
 ```
 
 The model we obtained is Writing Score \~ Lunch Type + Ethnic Group + Test Prep + Gender + Parent Education + Weekly Study Hours.
 
-When using the single-function method, the model obtained with the lowest AIC was Writing Score \~ Gender + Lunch Type + Test Prep + Parent Education + Ethnic Group + Weekly Study Hours. Both models had R-squared values and MSEs within 0.6 points of each other.
+When using the single-function method, the model obtained with the lowest AIC was Writing Score \~ Gender + Lunch Type + Test Prep + Parent Education + Ethnic Group + Weekly Study Hours. Both models had approximately equal adjusted R-squared values, while the MSE of the one-line model was about 3.5 units lower.
 
 It seems that when using the single-function method, for all scores and for both forwards and backwards elimination, extra variables were included despite their individual p-values \> 0.05; therefore the manually-selected models should be used for comparison and validation.
 
