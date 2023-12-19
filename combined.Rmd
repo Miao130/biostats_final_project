@@ -434,15 +434,20 @@ summary(step5)
 reading_backward_manual_fit = update(step5, . ~ . -wkly_study_hours)
 fin = summary(reading_backward_manual_fit)
 fin
+mean(reading_backward_manual_fit$residuals^2)
 
 # just use one function
 reading_backward_func_fit = step(mult.fit, direction='backward')
 one_fun_fin = summary(reading_backward_func_fit)
+one_fun_fin
+mean(reading_backward_func_fit$residuals^2)
+
+
 ```
 
 With manual elimination, the model we obtained was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep.
 
-When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep. The one-function model had a lower MSE than the manually-calculated model by about 14 points and a higher R-sqaured value by about 10 points.
+When using the single-function method, the model obtained with the lowest AIC was Reading Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep. The one-function model had equal adjusted R^2 and MSE values.
 
 Writing Score
 
