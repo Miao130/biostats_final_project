@@ -1661,6 +1661,37 @@ As we can see, removing `gender` will lower `wkly_study_hours` by `r abs(1.176-0
 
 Hence, `gender`, `test_prep`, `parent_educ` could be potential confounder for `wkly_study_hours`
 
+# Final model
+
+## Math
+
+```{r}
+math_final = lm(math_score ~ lunch_type + ethnic_group + test_prep + gender + parent_educ + wkly_study_hours + nr_siblings, data = df_num)
+reading_final = lm(reading_score ~ lunch_type + gender + test_prep + parent_educ + ethnic_group, data = df_num)
+writing_final = lm(writing_score ~ gender + lunch_type + test_prep + parent_educ + ethnic_group + wkly_study_hours, data = df_num)
+```
+
+```{r}
+summary(math_final)
+```
+$$
+\hat{MathScore} = 28.0713 + 12.5737*\text{Lunch Type ()} + 2.7439*\text{Ethnic Group ()}-5.2926*\text{Test Prep ()} + 5.3017 *\text{Gender()} + 1.5210*\text{Parent Education()} + 2.0825*\text{Weekly Study Hours()} + 1.5210*\text{Number of Sibilings()}
+$$
+
+```{r}
+summary(reading_final)
+```
+
+$$
+\hat{ReadingScore} = 66.7121 + 8.6667*\text{Lunch Type ()} + -7.5066 *\text{Gender()} - 6.8289*\text{Test Prep ()}+1.7606 *\text{Parent Education()} +1.7930*\text{Ethnic Group ()}
+$$
+```{r}
+summary(writing_final)
+```
+$$
+\hat{WritingScore} = 65.3125 + 9.4976 *\text{Lunch Type ()} + -9.1792 *\text{Gender()} - -9.0360*\text{Test Prep ()}+ 2.3242 *\text{Parent Education()} +2.1684*\text{Ethnic Group ()} + 1.1762*\text{Weekly Study Hours()}
+$$
+
 # Leverage one score
 
 ## Effect of adding Writing, Reading scores on Maths model
@@ -1741,3 +1772,4 @@ print(paste("Mean MSE across Folds:", mean_mse_cv))
 ```
 
 The model performs as well on test set and also across folds. Adding other scores to one score's best fit model did enhance the model.
+
