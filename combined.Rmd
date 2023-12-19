@@ -402,7 +402,7 @@ one_fun_fin = summary(math_backward_func_fit)
 
 With manual elimination, the model we obtained was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
 
-When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Number of Siblings + Weekly Study Hours. Both models' MSEs are within 0.5 points of each other, while the single function had a lower MSE by about 1 point.
+When using the single-function method, the model obtained with the lowest AIC was Math Score \~ Gender + Ethnic Group + Parent Education + Lunch Type + Test Prep + Number of Siblings + Weekly Study Hours. Both models' adjusted R^2 are within 0.5 points of each other, while the single function had a lower MSE by about 1 point.
 
 Reading Score
 
