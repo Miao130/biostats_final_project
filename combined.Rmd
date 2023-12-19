@@ -1471,40 +1471,14 @@ We noticed that the the best model is the one that uses forward elimination with
 
 # Effect Modifier
 
-We will take a logical approach to get the effect modification within the variables.
-
--   The variables provided to measure the scores are `r step_df |> dplyr::select(-ends_with("score")) |> colnames() |> paste(sep = ',')`. `is_first_child` and the `nr_siblings` can be related since if the person have no siblings, then the probability that they are the first child is 1.
-
--   If the person practice sports(`practice_sport`, then they are less likely to take the bus (`transport_means`) back to their location.
-
--   `gender`, `ethnic_group`, `parent_educ`, `parent_marital_status`, `transport_means` can all affect the person's family financial background. This can be reflected directly with `lunch_type`. We will only evaluate the effect of `gender`, `ethnic_group` on `lunch_type`.
-
--   `practice_sport` can affect the `wkly_study_hours` as the sports will take up chunks of time to study.
-
-The models that will be used in the effect modifier section are the models that are selected using `crossv_mc()` function, i.e.
-
-`r models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()`
-
-`r models_report_df |> filter(subject == "reading", method == "forward_func") |> pull(terms) |> paste()`
-
-`r models_report_df |> filter(subject == "writing", method == "forward_func") |> pull(terms) |> paste()`
-
-Here are the procedures for identifying effect modifiers and find confounders of the Here are all the possible effect interactions if we load in all of the predictors.
-
 ```{r}
 math_best_cv_terms = models_report_df |> filter(subject == "math", method == "forward_func") |> pull(terms) |> paste()
 reading_best_cv_terms = models_report_df |> filter(subject == "reading", method == "forward_func") |> pull(terms) |> paste()
 writing_best_cv_terms = models_report_df |> filter(subject == "writing", method == "forward_func") |> pull(terms) |> paste()
 ```
 
-```{r}
-lm(as.formula(gsub("\\+", "*", math_best_cv_terms)), data = step_df) |>  
-  broom::tidy() |> 
-  filter(str_detect(term, ":")) |>
-  filter(p.value < 0.05) |>
-  knitr::kable(caption = "Math: Effect Modifiers")
-
-lm(as.formula(gsub("\\+", "*", math_best_cv_terms)), data = step_df) |> 
+```{r math_interaction_table}
+lm(as.formula(gsub("\\+", "*", writing_best_cv_terms)), data = step_df) |> 
   anova() |>
   broom::tidy() |> 
   filter(str_detect(term, ":")) |>
@@ -1512,36 +1486,53 @@ lm(as.formula(gsub("\\+", "*", math_best_cv_terms)), data = step_df) |>
   knitr::kable(caption = "Math: Effect Modifiers")
 ```
 
-```{r}
-lm(as.formula(gsub("\\+", "*", reading_best_cv_terms)), data = step_df) |> 
+```{r reading_interaction_table}
+lm(as.formula(gsub("\\+", "*", writing_best_cv_terms)), data = step_df) |> 
+  anova() |>
   broom::tidy() |> 
   filter(str_detect(term, ":")) |>
   filter(p.value < 0.05) |>
-  knitr::kable(caption = "Reading: Effect Modifiers")
-
-lm(as.formula(gsub("\\+", "*", reading_best_cv_terms)), data = step_df) |> 
-  anova() |> 
-  broom::tidy() |> 
-  filter(str_detect(term, ":")) |>
-  filter(p.value < 0.05) |>
-  knitr::kable(caption = "Reading: Effect Modifiers")
+  knitr::kable(caption = "Math: Effect Modifiers")
 ```
 
-```{r}
+```{r writing_interaction_table}
 lm(as.formula(gsub("\\+", "*", writing_best_cv_terms)), data = step_df) |> 
+  anova() |>
   broom::tidy() |> 
   filter(str_detect(term, ":")) |>
   filter(p.value < 0.05) |>
-  knitr::kable(caption = "Writing: Effect Modifiers")
-
-lm(as.formula(gsub("\\+", "*", writing_best_cv_terms)), data = step_df) |> 
-  anova() |> 
-  broom::tidy() |> 
-  filter(str_detect(term, ":")) |>
-  filter(p.value < 0.05) |>
-  knitr::kable(caption = "Writing: Effect Modifiers")
+  knitr::kable(caption = "Math: Effect Modifiers")
 ```
 
+```{r math_interaction_found}
+lm(math_score ~ parent_educ * nr_siblings, data = df_transformed) |>
+  broom::tidy() |> 
+  knitr::kable(caption = "Math: Effect Modifiers")
+```
+
+```{r math_interaction_plot}
+df_transformed |>
+  ggplot(aes(x = nr_siblings, y = math_score, color = parent_educ)) + 
+  geom_point() +
+  geom_smooth(method="lm", se=F, aes(group = parent_educ, color = parent_educ)) +
+  theme_bw()
+```
+
+```{r reading_interaction_plot}
+df_transformed |>
+  ggplot(aes(x = nr_siblings, y = reading_score, group = parent_educ, color = parent_educ)) + 
+  geom_point() +
+  geom_smooth(method="lm", se=F) +
+  theme_bw()
+```
+
+```{r writing_interaction_plot}
+df_transformed |>
+  ggplot(aes(x = nr_siblings, y = writing_score, color = parent_educ)) + 
+  geom_point() +
+  geom_smooth(method="lm", se=F, aes(group = parent_educ, color = parent_educ)) +
+  theme_bw()
+```
 ## Confounder
 
 ## Confounding - Math
@@ -1581,7 +1572,7 @@ lm(as.formula(gsub("\\+ nr_siblings", "", math_best_cv_terms)), data = step_df) 
   knitr::kable(caption = "math: without Number of Siblings")
 ```
 
-`gender`, `test_prep` -\> `wkly_study_hours` `test_prep` -\> `nr_siblings`
+Removing `test_prep` will increase `wkly_study_hours` by `r abs(2.142 - 2.082)/2.082`. Therefore test prep could be a confounder for weekly study hours in hours
 
 ## Confounding - Reading
 
@@ -1646,15 +1637,9 @@ lm(as.formula(gsub("\\+ wkly_study_hours", "", writing_best_cv_terms)), data = s
   knitr::kable(caption = "Writing: without Weekly Study Hours")
 ```
 
-We can see, removing `gender` will lower `wkly_study_hours` by `r abs(1.176-0.924)/1.176`, removing `test_prep` will lower `wkly_study_hours` by `r abs(1.176-1.792)/1.176`, and removing `parent_educ` will lower `wkly_study_hours` by `r abs(1.176-0.991)/1.176`.
+As we can see, removing `gender` will lower `wkly_study_hours` by `r abs(1.176-0.924)/1.176`, removing `test_prep` will increase `wkly_study_hours` by `r abs(1.176-1.792)/1.176`, and removing `parent_educ` will lower `wkly_study_hours` by `r abs(1.176-0.991)/1.176`.
 
 Hence, `gender`, `test_prep`, `parent_educ` could be potential confounder for `wkly_study_hours`
-
-```{r}
-abs(1.176-0.924)/1.176
-abs(1.176-1.792)/1.176
-abs(1.176-0.991)/1.176
-```
 
 # Leverage one score
 
