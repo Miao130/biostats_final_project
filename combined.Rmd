@@ -1120,7 +1120,6 @@ The model we obtained is Writing Score \~ Lunch Type + Ethnic Group + Test Prep 
 
 When using the single-function method, the model obtained with the lowest AIC was Writing Score \~ Gender + Lunch Type + Test Prep + Parent Education + Ethnic Group + Weekly Study Hours. Both models had approximately equal adjusted R-squared values, while the MSE of the one-line model was about 3.5 units lower.
 
-It seems that when using the single-function method, for all scores and for both forwards and backwards elimination, extra variables were included despite their individual p-values \> 0.05; therefore the manually-selected models should be used for comparison and validation.
 
 ## Criteria-based approach - Adjusted R\^2, Cp, BIC
 
