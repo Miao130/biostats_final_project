@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, message=FALSE,warning=FALSE)
+knitr::opts_chunk$set(echo=TRUE, message=FALSE,warning=FALSE)
 library(tidyverse)
 library(dplyr)
 library(kableExtra)
@@ -143,6 +143,7 @@ do.call(rbind, results_num)|>
   knitr::kable()
 ```
 
+## Histograms of all variables
 ```{r}
 png("normality_check.png", width = 1200, height = 800)
 par(mfrow=c(3,5))
