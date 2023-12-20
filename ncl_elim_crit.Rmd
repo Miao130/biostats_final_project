@@ -57,6 +57,18 @@ reading_df = dplyr::select(step_df, -c(math_score, writing_score))
 
 writing_df = dplyr::select(step_df, -c(reading_score, math_score))
 ```
+wkly_study_hours+ gender+ ethnic_group +lunch_type +test_prep+parent_educ 
+```{r}
+lm(writing_score ~ gender + lunch_type + test_prep + parent_educ + ethnic_group*wkly_study_hours, data = step_df) |> 
+  broom::tidy() |> 
+  knitr::kable(caption = "Writing: Effect Modifiers")
+
+lm(writing_score ~ test_prep*ethnic_group, data = df_transformed) |> 
+  broom::tidy() |> 
+  filter(str_detect(term, ":")) |>
+  filter(p.value < 0.05) |>
+  knitr::kable(caption = "Writing: Effect Modifiers")
+```
 
 ## Step-wise: Backwards Elimination
 
@@ -88,14 +100,14 @@ fin = summary(step5)
 
 # just use one function
 one_fun = step(mult.fit, direction='backward')
-one_fun_fin = summary(one_fun)
+summary(one_fun_fin)
 ```
 With manual elimination, the model we obtained was Math Score ~ Gender + Ethnic
 Group + Parent Education + Lunch Type + Test Prep + Weekly Study Hours.
 
 When using the single-function method, the model obtained with the lowest AIC
 was Math Score ~ Gender + Ethnic Group + Parent Education + Lunch Type + 
-Test Prep + Number of Siblings + Weekly Study Hours. Both models' MSEs are 
+Test Prep + Number of Siblings + Weekly Study Hours. Both models' adjusted R^2 values are 
 within 0.5 points of each other, while the single function had a lower MSE by
 about 1 point.
 
@@ -132,7 +144,7 @@ fin = summary(step6)
 
 # just use one function
 one_fun = step(mult.fit, direction='backward')
-one_fun_fin = fin
+summary(one_fun)
 ```
 With manual elimination, the model we obtained was Reading Score ~ Gender + Ethnic
 Group + Parent Education + Lunch Type + Test Prep.
@@ -174,7 +186,7 @@ fin = summary(step6)
 
 # just use one function
 fitt = step(mult.fit, direction='backward')
-one_fun_fin = summary(fitt)
+summary(fitt)
 ```
 With manual elimination, the model we obtained was Writing Score ~ Gender + Ethnic
 Group + Parent Education + Lunch Type + Test Prep.

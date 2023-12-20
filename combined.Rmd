@@ -1145,6 +1145,8 @@ tibble(predictors = 1:11,
 
 results$which[7,]|>print()
 math_criteria_fit = lm(math_score ~ gender + ethnic_group + parent_educ + lunch_type+ test_prep + nr_siblings, wkly_study_hours, data = step_df)
+
+ggsave("math_criteria_plots.png")
 ```
 
 To predict math score, the adjusted R\^2 statistic, Cp, and BIC plots in combination show that a 7-variable model is optimal. The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep, nr_siblings, and wkly study_hours.
@@ -1167,6 +1169,9 @@ tibble(predictors = 1:11,
 
 results$which[5,]|>print()
 reading_criteria_fit = lm(reading_score ~ gender + ethnic_group + parent_educ + lunch_type+ test_prep, data = step_df)
+
+ggsave("reading_criteria_plots.png")
+
 ```
 
 To predict reading score, the adjusted R\^2 statistic and Cp and BIC plots shows that a 5-variable model is optimal. The predictors selected are: gender, ethnic_group, parent_educ, lunch_type, test_prep.
@@ -1189,6 +1194,9 @@ tibble(predictors = 1:11,
 
 results$which[5,] |>print()
 writing_criteria_fit = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep, data = step_df)
+
+ggsave("writing_criteria_plots.png")
+
 ```
 
 To predict writing score, the adjusted R\^2, Cp, and BIC statistics show that a 5-variable model is optimal.\
