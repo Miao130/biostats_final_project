@@ -1562,6 +1562,7 @@ df_transformed |>
   geom_smooth(method="lm", se=F, aes(group = parent_educ, color = parent_educ)) +
   theme_bw()
 ```
+
 ## Confounder
 
 ## Confounding - Math
@@ -1686,13 +1687,16 @@ summary(math_final)
 $\hat{MathScore} = 28.0713 + 12.5737*\text{Lunch Type} + 2.7439*\text{Ethnic Group}-5.2926*\text{Test Prep} + 5.3017 *\text{Gender} + 1.5210*\text{Parent Education} + 2.0825*\text{Weekly Study Hours} + 1.5210*\text{Number of Sibilings}$
 
 ## Reading
+
 ```{r}
 summary(reading_final)
 ```
 
+
 $\hat{ReadingScore} = 66.7121 + 8.6667*\text{Lunch Type} -7.5066 *\text{Gender} - 6.8289*\text{Test Prep}+1.7606 *\text{Parent Education} +1.7930*\text{Ethnic Group}$
 
 ## Writing
+
 ```{r}
 summary(writing_final)
 ```
@@ -1729,6 +1733,7 @@ abline(h = 0, col = "red", lwd = 2)
 The residuals show no pattern when plotted against independent variables indicates the relationship between the independent variables and the dependent variable is linear. Also, the residuals are independent of each other. The variance of errors is also constant. These attributes ensure the reliability and validity of the predictive model.
 
 ### Writing
+
 ```{r}
 plot(writing_final$fitted.values, writing_final$residuals, 
      xlab = "Fitted Values", 
@@ -1739,9 +1744,11 @@ plot(writing_final$fitted.values, writing_final$residuals,
 # Adding a horizontal line at 0
 abline(h = 0, col = "red", lwd = 2)
 ```
+
 The residuals show no pattern when plotted against independent variables indicates the relationship between the independent variables and the dependent variable is linear. Also, the residuals are independent of each other. The variance of errors is also constant. These attributes ensure the reliability and validity of the predictive model.
 
-##Performance
+
+## Performance
 
 ```{r}
 set.seed(123)
@@ -1762,9 +1769,12 @@ writing_model = train(writing_score ~ gender + lunch_type + test_prep + parent_e
                       data = df_num,
                       method = "lm",
                       trControl = control)
-math_model$results
-reading_model$results
-writing_model$results
+math_model$results |> 
+  knitr::kable()
+reading_model$results |> 
+  knitr::kable()
+writing_model$results |> 
+  knitr::kable()
 ```
 
 The math, reading, writing model explain 26.8%, 22.0%, 31.2% of the score's variance respectively, with a RMSE of 13.7, 13.4, 12.9 and a MAE of 11.1, 10.9, 10.4. These models have an average absolute difference 11.2, 10.9, 10.4 between true score and predicted score. Overall, these three multiple linear regression model indicates a reasonably good fit and predictive accuracy.
